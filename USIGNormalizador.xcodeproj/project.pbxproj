@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		33D8A6A9E4AA13BB236E73D3 /* Pods_USIGNormalizador.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBFA644442F384F50DAFCABB /* Pods_USIGNormalizador.framework */; };
 		D547F9F11F7D99B2002977C0 /* USIGNormalizador.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */; };
 		D547F9F61F7D99B2002977C0 /* USIGNormalizadorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */; };
 		D547F9F81F7D99B2002977C0 /* USIGNormalizador.h in Headers */ = {isa = PBXBuildFile; fileRef = D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -26,6 +27,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5939E3A1C43EE363CC5FA0A3 /* Pods-USIGNormalizador.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-USIGNormalizador.debug.xcconfig"; path = "Pods/Target Support Files/Pods-USIGNormalizador/Pods-USIGNormalizador.debug.xcconfig"; sourceTree = "<group>"; };
+		A3B4AA404570B8E4D1860BBB /* Pods-USIGNormalizador.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-USIGNormalizador.release.xcconfig"; path = "Pods/Target Support Files/Pods-USIGNormalizador/Pods-USIGNormalizador.release.xcconfig"; sourceTree = "<group>"; };
 		D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = USIGNormalizador.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = USIGNormalizador.h; sourceTree = "<group>"; };
 		D547F9EB1F7D99B2002977C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -35,6 +38,7 @@
 		D5CBCCCE1F7DA1FA00CCF15D /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		D5CBCCD01F7DA24600CCF15D /* Address.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Address.swift; sourceTree = "<group>"; };
 		D5CBCCD21F7DA29200CCF15D /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		DBFA644442F384F50DAFCABB /* Pods_USIGNormalizador.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_USIGNormalizador.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33D8A6A9E4AA13BB236E73D3 /* Pods_USIGNormalizador.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,12 +61,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1CF8A1DAAFB8C79D53116AAB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DBFA644442F384F50DAFCABB /* Pods_USIGNormalizador.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C7C4004F1CA0D3B35CCEFACF /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				5939E3A1C43EE363CC5FA0A3 /* Pods-USIGNormalizador.debug.xcconfig */,
+				A3B4AA404570B8E4D1860BBB /* Pods-USIGNormalizador.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		D547F9DD1F7D99B2002977C0 = {
 			isa = PBXGroup;
 			children = (
 				D547F9E91F7D99B2002977C0 /* USIGNormalizador */,
 				D547F9F41F7D99B2002977C0 /* USIGNormalizadorTests */,
 				D547F9E81F7D99B2002977C0 /* Products */,
+				C7C4004F1CA0D3B35CCEFACF /* Pods */,
+				1CF8A1DAAFB8C79D53116AAB /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -113,10 +137,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D547F9FB1F7D99B2002977C0 /* Build configuration list for PBXNativeTarget "USIGNormalizador" */;
 			buildPhases = (
+				7E27D1956EF4265D910B6D86 /* [CP] Check Pods Manifest.lock */,
 				D547F9E21F7D99B2002977C0 /* Sources */,
 				D547F9E31F7D99B2002977C0 /* Frameworks */,
 				D547F9E41F7D99B2002977C0 /* Headers */,
 				D547F9E51F7D99B2002977C0 /* Resources */,
+				98CBC5D24AFE093C6C16B1D7 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -202,6 +228,42 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		7E27D1956EF4265D910B6D86 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-USIGNormalizador-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		98CBC5D24AFE093C6C16B1D7 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-USIGNormalizador/Pods-USIGNormalizador-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D547F9E21F7D99B2002977C0 /* Sources */ = {
@@ -336,6 +398,7 @@
 		};
 		D547F9FC1F7D99B2002977C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5939E3A1C43EE363CC5FA0A3 /* Pods-USIGNormalizador.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -358,6 +421,7 @@
 		};
 		D547F9FD1F7D99B2002977C0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3B4AA404570B8E4D1860BBB /* Pods-USIGNormalizador.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";

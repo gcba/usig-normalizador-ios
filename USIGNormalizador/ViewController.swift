@@ -9,7 +9,6 @@
 import Foundation
 import UIKit
 import SwifterSwift
-import Eureka
 import DZNEmptyDataSet
 import RxSwift
 import RxCocoa
@@ -21,8 +20,7 @@ fileprivate enum SearchState {
     case Error
 }
 
-public class USIGViewController: UIViewController, TypedRowControllerType {
-    typealias RowValue = USIGAddress
+class USIGViewController: UIViewController {
     
     // MARK: - Outlets
     
@@ -33,11 +31,13 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
     let disposeBag = DisposeBag()
     
     var provider: RxMoyaProvider<USIG>!
-    var row: RowOf<USIGAddress>!
     var onDismissCallback: ((UIViewController) -> Void)?
     var searchController: UISearchController!
-    var results: [USIGAddress] = []
+    var results: [Address] = []
+    public var value: Address? = nil // TEMP
+    public var max: Int = 10 // TEMP
     fileprivate var state: SearchState = .Empty
+    fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     
     // MARK: - Overrides
     
@@ -72,7 +72,7 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.text = row.value?.address.replacingOccurrences(of: ", CABA", with: "")
+        searchController.searchBar.text = value?.address.replacingOccurrences(of: ", CABA", with: "")
         
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
@@ -122,9 +122,11 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
     // MARK: - Helper methods
     
     private func filterSearch() -> Bool {
-        if searchController.searchBar.trimmedText!.length > 0 { return true }
+        
+        
+        if let text = searchController.searchBar.text, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
         else  {
-            searchController.searchBar.textField?.text = self.searchController.searchBar.textField?.text?.trimmed
+            searchController.searchBar.textField?.text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .Empty
             results = []
             
@@ -135,12 +137,10 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
     }
     
     private func makeRequest(_ query: String) -> Observable<Any> {
-        let usigRow = row as! USIGRow
-        
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIG.normalizar(direccion: query.trimmed.lowercased(), geocodificar: true, max: usigRow.max))
+            .request(USIG.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: max))
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }
@@ -169,10 +169,10 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
         }
         
         for item in addresses {
-            let address = USIGAddress(address: (item["direccion"] as! String).trimmed,
-                                      street: (item["nombre_calle"] as! String).trimmed,
+            let address = Address(address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
+                                      street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
                                       number: item["altura"] as? Int,
-                                      type: (item["tipo"] as! String).trimmed,
+                                      type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                                       corner: item["nombre_calle_cruce"] as? String)
             
             self.results.append(address)
@@ -189,7 +189,6 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
     }
     
     private func handleSelectedItem(index: Int) {
-        let usigRow = row as! USIGRow
         let result = self.results[index]
         
         guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
@@ -199,8 +198,6 @@ public class USIGViewController: UIViewController, TypedRowControllerType {
             
             return
         }
-        
-        usigRow.value = result
         
         close(directly: false)
     }
@@ -313,17 +310,17 @@ private extension String {
     }
     
     func highlight(_ text: String?) -> NSAttributedString {
-        let haystack = self.trimmed.lowercased()
+        let haystack = self.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
-        guard let substring = text, let range = haystack.range(of: substring.trimmed.lowercased()) else {
+        guard let substring = text, let range = haystack.range(of: substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
             return highlight(range: NSRange(location: 0, length: 0))
         }
         
-        let needle = substring.trimmed.lowercased()
+        let needle = substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let lower16 = range.lowerBound.samePosition(in: haystack.utf16)
         let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
         
-        return highlight(range: NSRange(location: start, length: needle.length))
+        return highlight(range: NSRange(location: start, length: needle.characters.count))
     }
 }
 
