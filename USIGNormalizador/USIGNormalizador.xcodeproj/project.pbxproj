@@ -402,6 +402,7 @@
 				D547F9FD1F7D99B2002977C0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D547F9FE1F7D99B2002977C0 /* Build configuration list for PBXNativeTarget "USIGNormalizadorTests" */ = {
 			isa = XCConfigurationList;
@@ -410,6 +411,7 @@
 				D547FA001F7D99B2002977C0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
