@@ -1,0 +1,33 @@
+PODS:
+  - Alamofire (4.5.1)
+  - DZNEmptyDataSet (1.8.1)
+  - Moya/Core (8.0.5):
+    - Alamofire (~> 4.1)
+    - Result (~> 3.0)
+  - Moya/RxSwift (8.0.5):
+    - Moya/Core
+    - RxSwift (~> 3.0)
+  - Result (3.2.3)
+  - RxCocoa (3.6.1):
+    - RxSwift (~> 3.6)
+  - RxSwift (3.6.1)
+  - SwifterSwift/Foundation (3.2.0)
+
+DEPENDENCIES:
+  - DZNEmptyDataSet (~> 1.8)
+  - Moya/RxSwift (~> 8.0)
+  - RxCocoa (~> 3.6)
+  - SwifterSwift/Foundation (~> 3.2)
+
+SPEC CHECKSUMS:
+  Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
+  DZNEmptyDataSet: 9525833b9e68ac21c30253e1d3d7076cc828eaa7
+  Moya: c37eec09a098ba9991b5a963b291fc5704bdb9ef
+  Result: 128640a6347e8d2ae48b142556739a2d13f90ce6
+  RxCocoa: 84a08739ab186248c7f31ce4ee92d6f8a947d690
+  RxSwift: f9de85ea20cd2f7716ee5409fc13523dc638e4e4
+  SwifterSwift: e009210d995737f54c1fbffc5a3f004c8467ab1d
+
+PODFILE CHECKSUM: 586a84046df675439244f2949a1d33b6034de89b
+
+COCOAPODS: 1.3.1
