@@ -10,6 +10,9 @@
 		D547F9F11F7D99B2002977C0 /* USIGNormalizador.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */; };
 		D547F9F61F7D99B2002977C0 /* USIGNormalizadorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */; };
 		D547F9F81F7D99B2002977C0 /* USIGNormalizador.h in Headers */ = {isa = PBXBuildFile; fileRef = D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D5CBCCCF1F7DA1FA00CCF15D /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCCE1F7DA1FA00CCF15D /* Provider.swift */; };
+		D5CBCCD11F7DA24600CCF15D /* Address.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCD01F7DA24600CCF15D /* Address.swift */; };
+		D5CBCCD31F7DA29200CCF15D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCD21F7DA29200CCF15D /* ViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +32,9 @@
 		D547F9F01F7D99B2002977C0 /* USIGNormalizadorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = USIGNormalizadorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorTests.swift; sourceTree = "<group>"; };
 		D547F9F71F7D99B2002977C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D5CBCCCE1F7DA1FA00CCF15D /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		D5CBCCD01F7DA24600CCF15D /* Address.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Address.swift; sourceTree = "<group>"; };
+		D5CBCCD21F7DA29200CCF15D /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +79,9 @@
 			children = (
 				D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */,
 				D547F9EB1F7D99B2002977C0 /* Info.plist */,
+				D5CBCCCE1F7DA1FA00CCF15D /* Provider.swift */,
+				D5CBCCD01F7DA24600CCF15D /* Address.swift */,
+				D5CBCCD21F7DA29200CCF15D /* ViewController.swift */,
 			);
 			path = USIGNormalizador;
 			sourceTree = "<group>";
@@ -149,6 +158,7 @@
 					D547F9E61F7D99B2002977C0 = {
 						CreatedOnToolsVersion = 8.3.3;
 						DevelopmentTeam = ZN5W2XWA2N;
+						LastSwiftMigration = 0830;
 						ProvisioningStyle = Automatic;
 					};
 					D547F9EF1F7D99B2002977C0 = {
@@ -198,6 +208,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5CBCCD11F7DA24600CCF15D /* Address.swift in Sources */,
+				D5CBCCCF1F7DA1FA00CCF15D /* Provider.swift in Sources */,
+				D5CBCCD31F7DA29200CCF15D /* ViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +337,7 @@
 		D547F9FC1F7D99B2002977C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = ZN5W2XWA2N;
@@ -336,6 +350,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ar.gob.buenosaires.USIGNormalizador;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.1;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -344,6 +359,7 @@
 		D547F9FD1F7D99B2002977C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = ZN5W2XWA2N;
@@ -364,6 +380,7 @@
 		D547F9FF1F7D99B2002977C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = ZN5W2XWA2N;
 				INFOPLIST_FILE = USIGNormalizadorTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -376,6 +393,7 @@
 		D547FA001F7D99B2002977C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = ZN5W2XWA2N;
 				INFOPLIST_FILE = USIGNormalizadorTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
