@@ -1,0 +1,10 @@
+framework module USIGNormalizador {
+  umbrella header "USIGNormalizador.h"
+
+  export *
+  module * { export * }
+}
+
+module USIGNormalizador.Swift {
+    header "USIGNormalizador-Swift.h"
+}
