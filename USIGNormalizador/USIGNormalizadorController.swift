@@ -42,7 +42,7 @@ public class USIGNormalizadorController: UIViewController {
     private var _value: USIGNormalizadorAddress?
     public var value: USIGNormalizadorAddress? { return _value }
     
-    fileprivate var provider: RxMoyaProvider<USIGNormalizadorProvider>!
+    fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
@@ -96,7 +96,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupRx() {
-        let requestClosure = { (endpoint: Endpoint<USIGNormalizadorProvider>, done: RxMoyaProvider.RequestResultClosure) in
+        let requestClosure = { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
             var request: URLRequest = endpoint.urlRequest!
             
             request.cachePolicy = .returnCacheDataElseLoad
@@ -104,7 +104,7 @@ public class USIGNormalizadorController: UIViewController {
             done(.success(request))
         }
         
-        provider = RxMoyaProvider<USIGNormalizadorProvider>(requestClosure: requestClosure)
+        provider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: requestClosure)
         
         searchController.searchBar
             .rx.text
@@ -144,7 +144,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIGNormalizadorProvider.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: _max))
+            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: _max))
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }

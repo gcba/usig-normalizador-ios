@@ -14,19 +14,14 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        let normalizador = USIGNormalizador.new()
-        let navigationController = UINavigationController(rootViewController: normalizador)
+        let search = USIGNormalizador.search()
+        let navigationController = UINavigationController(rootViewController: search)
         
-        normalizador.maxResults = 10
+        search.maxResults = 10
         
         present(navigationController, animated: true, completion: nil)
     }

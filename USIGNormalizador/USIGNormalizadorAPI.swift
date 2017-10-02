@@ -1,5 +1,5 @@
 //
-//  USIGNormalizadorProvider.swift
+//  USIGNormalizadorAPI.swift
 //  USIGNormalizador
 //
 //  Created by Rita Zerrizuela on 9/28/17.
@@ -9,15 +9,15 @@
 import Foundation
 import Moya
 
-enum USIGNormalizadorProvider {
+public enum USIGNormalizadorAPI {
     case normalizar(direccion: String, geocodificar: Bool, max: Int)
     case normalizarCoordenadas(latitud: Float, longitud: Float)
 }
 
-extension USIGNormalizadorProvider: TargetType {
-    var baseURL: URL { return URL(string: "https://servicios.usig.buenosaires.gob.ar")! }
+extension USIGNormalizadorAPI: TargetType {
+    public var baseURL: URL { return URL(string: "https://servicios.usig.buenosaires.gob.ar")! }
     
-    var path: String {
+    public var path: String {
         switch self {
         case .normalizarCoordenadas(_, _):
             fallthrough
@@ -26,9 +26,9 @@ extension USIGNormalizadorProvider: TargetType {
         }
     }
     
-    var method: Moya.Method { return .get }
+    public var method: Moya.Method { return .get }
     
-    var parameters: [String: Any]? {
+    public var parameters: [String: Any]? {
         let exclusions = "almirante_brown,avellaneda,berazategui,berisso,canuelas,ensenada,escobar,esteban_echeverria,ezeiza," +
             "florencio_varela,general_rodriguez,general_san_martin,hurlingham,ituzaingo,jose_c_paz,la_matanza,lanus,la_plata," +
             "lomas_de_zamora,malvinas_argentinas,marcos_paz,merlo,moreno,moron,pilar,presidente_peron,quilmes,san_fernando," +
@@ -42,7 +42,7 @@ extension USIGNormalizadorProvider: TargetType {
         }
     }
     
-    var sampleData: Data {
+    public var sampleData: Data {
         switch self {
         case .normalizarCoordenadas(_, _):
             fallthrough
@@ -53,6 +53,6 @@ extension USIGNormalizadorProvider: TargetType {
         }
     }
     
-    var task: Task { return .request }
-    var parameterEncoding: ParameterEncoding { return URLEncoding.default }
+    public var task: Task { return .request }
+    public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
