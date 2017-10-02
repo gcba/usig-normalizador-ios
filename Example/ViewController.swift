@@ -10,14 +10,10 @@ import UIKit
 import USIGNormalizador
 
 class ViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-    }
+    @IBOutlet weak var addressLabel: UILabel!
+    @IBOutlet weak var searchButton: UIButton!
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
+    @IBAction func searchButtonTapped(sender: UIButton) {
         let search = USIGNormalizador.search()
         let navigationController = UINavigationController(rootViewController: search)
         
@@ -26,10 +22,18 @@ class ViewController: UIViewController {
         
         present(navigationController, animated: true, completion: nil)
     }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        addressLabel.sizeToFit()
+    }
 }
 
 extension ViewController: USIGNormalizadorControllerDelegate {
     func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
-        debugPrint(value.address)
+        DispatchQueue.main.async { [unowned self] in
+            self.addressLabel.text = value.address
+        }
     }
 }
