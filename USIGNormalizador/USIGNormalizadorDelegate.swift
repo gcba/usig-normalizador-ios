@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol USIGNormalizadorDelegate {
-    func exclusions(_ search: USIGNormalizadorController) -> String
+public protocol USIGNormalizadorControllerDelegate {
+    func exclude(_ search: USIGNormalizadorController) -> String
     func valueChanged(_ search: USIGNormalizadorController)
 }

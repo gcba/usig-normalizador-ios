@@ -42,7 +42,9 @@ public class USIGNormalizadorController: UIViewController {
     private var _value: USIGNormalizadorAddress?
     public var value: USIGNormalizadorAddress? { return _value }
     
+    fileprivate var delegate: USIGNormalizadorControllerDelegate?
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
+    
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
@@ -141,10 +143,12 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func makeRequest(_ query: String) -> Observable<Any> {
+        let exclusion = delegate?.exclude(self) ?? USIGNormalizadorExclusions.GBA.rawValue
+        
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: .GBA, geocodificar: true, max: _max))
+            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusion, geocodificar: true, max: _max))
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }
@@ -203,6 +207,9 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
         
+        _value = result
+        
+        delegate?.valueChanged(self)
         close(directly: false)
     }
     

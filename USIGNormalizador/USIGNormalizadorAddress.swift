@@ -22,4 +22,3 @@ extension USIGNormalizadorAddress: Equatable {
         return lhs.address == rhs.address && lhs.type == rhs.type
     }
 }
-

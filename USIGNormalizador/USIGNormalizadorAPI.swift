@@ -15,7 +15,7 @@ public enum USIGNormalizadorExclusions: String {
 }
 
 public enum USIGNormalizadorAPI {
-    case normalizar(direccion: String, excluyendo: USIGNormalizadorExclusions, geocodificar: Bool, max: Int)
+    case normalizar(direccion: String, excluyendo: String?, geocodificar: Bool, max: Int)
     case normalizarCoordenadas(latitud: Float, longitud: Float)
 }
 
@@ -36,7 +36,7 @@ extension USIGNormalizadorAPI: TargetType {
     public var parameters: [String: Any]? {
         switch self {
         case .normalizar(let direccion, let excluyendo, let geocodificar, let max):
-            return ["direccion": direccion, "geocodificar": geocodificar, "maxOptions": max, "exclude": excluyendo.rawValue]
+            return ["direccion": direccion, "geocodificar": geocodificar, "maxOptions": max, "exclude": excluyendo ?? ""]
         case .normalizarCoordenadas(let latitud, let longitud):
             return ["lat": latitud, "lng": longitud]
         }
