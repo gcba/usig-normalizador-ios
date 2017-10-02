@@ -24,7 +24,7 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         
         let normalizador = USIGNormalizador.new()
-        let navigationController = UINavigationController(rootViewController: viewController)
+        let navigationController = UINavigationController(rootViewController: normalizador)
         
         normalizador.maxResults = 10
         
