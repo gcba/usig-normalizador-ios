@@ -144,7 +144,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: _max))
+            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: .GBA, geocodificar: true, max: _max))
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }
