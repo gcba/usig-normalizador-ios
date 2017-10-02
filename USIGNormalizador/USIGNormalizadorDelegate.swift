@@ -10,5 +10,10 @@ import Foundation
 
 public protocol USIGNormalizadorControllerDelegate {
     func exclude(_ search: USIGNormalizadorController) -> String
-    func valueChanged(_ search: USIGNormalizadorController)
+    func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress)
+}
+
+extension USIGNormalizadorControllerDelegate {
+    public func exclude(_ search: USIGNormalizadorController) -> String { return USIGNormalizadorExclusions.GBA.rawValue }
+    public func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {}
 }

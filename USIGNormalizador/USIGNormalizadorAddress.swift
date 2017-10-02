@@ -10,11 +10,11 @@ import Foundation
 import Moya
 
 public struct USIGNormalizadorAddress {
-    var address: String
-    let street: String
-    let number: Int?
-    let type: String
-    let corner: String?
+    public let address: String
+    public let street: String
+    public let number: Int?
+    public let type: String
+    public let corner: String?
 }
 
 extension USIGNormalizadorAddress: Equatable {

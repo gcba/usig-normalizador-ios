@@ -21,9 +21,15 @@ class ViewController: UIViewController {
         let search = USIGNormalizador.search()
         let navigationController = UINavigationController(rootViewController: search)
         
+        search.delegate = self
         search.maxResults = 10
         
         present(navigationController, animated: true, completion: nil)
     }
 }
 
+extension ViewController: USIGNormalizadorControllerDelegate {
+    func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
+        debugPrint(value.address)
+    }
+}

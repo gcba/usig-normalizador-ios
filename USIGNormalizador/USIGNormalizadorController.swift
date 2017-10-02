@@ -28,6 +28,9 @@ public class USIGNormalizadorController: UIViewController {
     
     // MARK: - Properties
 
+    private var _value: USIGNormalizadorAddress?
+    public var value: USIGNormalizadorAddress? { return _value }
+    
     private var _max: Int = 10
     public var maxResults: Int {
         get {
@@ -38,11 +41,8 @@ public class USIGNormalizadorController: UIViewController {
             _max = newValue > 0 ? newValue : _max
         }
     }
-    
-    private var _value: USIGNormalizadorAddress?
-    public var value: USIGNormalizadorAddress? { return _value }
-    
-    fileprivate var delegate: USIGNormalizadorControllerDelegate?
+
+    public var delegate: USIGNormalizadorControllerDelegate?
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
@@ -209,7 +209,7 @@ public class USIGNormalizadorController: UIViewController {
         
         _value = result
         
-        delegate?.valueChanged(self)
+        delegate?.didChange(self, value: result)
         close(directly: false)
     }
     
