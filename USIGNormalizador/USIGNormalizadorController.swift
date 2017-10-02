@@ -1,6 +1,6 @@
 //
-//  ViewController.swift
-//  USIGNormalizador
+//  USIGViewController.swift
+//  USIGNormalizadorController
 //
 //  Created by Rita Zerrizuela on 9/28/17.
 //  Copyright © 2017 GCBA. All rights reserved.
@@ -20,28 +20,39 @@ fileprivate enum SearchState {
     case Error
 }
 
-class USIGViewController: UIViewController {
+public class USIGNormalizadorController: UIViewController {
     
     // MARK: - Outlets
     
     @IBOutlet weak var table: UITableView!
     
     // MARK: - Properties
+
+    private var _max: Int = 10
+    public var maxResults: Int {
+        get {
+            return _max
+        }
+        
+        set {
+            _max = newValue > 0 ? newValue : _max
+        }
+    }
     
-    let disposeBag = DisposeBag()
+    private var _value: USIGNormalizadorAddress?
+    public var value: USIGNormalizadorAddress? { return _value }
     
-    var provider: RxMoyaProvider<USIG>!
-    var onDismissCallback: ((UIViewController) -> Void)?
-    var searchController: UISearchController!
-    var results: [Address] = []
-    public var value: Address? = nil // TEMP
-    public var max: Int = 10 // TEMP
+    fileprivate var provider: RxMoyaProvider<USIGNormalizadorProvider>!
+    fileprivate var onDismissCallback: ((UIViewController) -> Void)?
+    fileprivate var searchController: UISearchController!
+    fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .Empty
+    fileprivate let disposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     
     // MARK: - Overrides
     
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         setupNavigationBar()
@@ -51,12 +62,7 @@ class USIGViewController: UIViewController {
         definesPresentationContext = true
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
+    override public func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         searchController.isActive = true
@@ -72,7 +78,7 @@ class USIGViewController: UIViewController {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.text = value?.address.replacingOccurrences(of: ", CABA", with: "")
+        searchController.searchBar.text = _value?.address.replacingOccurrences(of: ", CABA", with: "")
         
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
@@ -90,7 +96,7 @@ class USIGViewController: UIViewController {
     }
     
     private func setupRx() {
-        let requestClosure = { (endpoint: Endpoint<USIG>, done: RxMoyaProvider.RequestResultClosure) in
+        let requestClosure = { (endpoint: Endpoint<USIGNormalizadorProvider>, done: RxMoyaProvider.RequestResultClosure) in
             var request: URLRequest = endpoint.urlRequest!
             
             request.cachePolicy = .returnCacheDataElseLoad
@@ -98,7 +104,7 @@ class USIGViewController: UIViewController {
             done(.success(request))
         }
         
-        provider = RxMoyaProvider<USIG>(requestClosure: requestClosure)
+        provider = RxMoyaProvider<USIGNormalizadorProvider>(requestClosure: requestClosure)
         
         searchController.searchBar
             .rx.text
@@ -122,8 +128,6 @@ class USIGViewController: UIViewController {
     // MARK: - Helper methods
     
     private func filterSearch() -> Bool {
-        
-        
         if let text = searchController.searchBar.text, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
         else  {
             searchController.searchBar.textField?.text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
@@ -140,7 +144,7 @@ class USIGViewController: UIViewController {
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIG.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: max))
+            .request(USIGNormalizadorProvider.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), geocodificar: true, max: _max))
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }
@@ -169,7 +173,7 @@ class USIGViewController: UIViewController {
         }
         
         for item in addresses {
-            let address = Address(address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
+            let address = USIGNormalizadorAddress(address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
                                       street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
                                       number: item["altura"] as? Int,
                                       type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
@@ -224,16 +228,16 @@ class USIGViewController: UIViewController {
 
 // MARK: - Extensions
 
-extension USIGViewController: UITableViewDataSource, UITableViewDelegate {
-    func numberOfSections(in tableView: UITableView) -> Int {
+extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate {
+    public func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
         cell.textLabel?.attributedText = results[indexPath.row].address
@@ -244,22 +248,22 @@ extension USIGViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
-extension USIGViewController: UISearchControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) { }
+extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating {
+    public func updateSearchResults(for searchController: UISearchController) { }
     
-    func didPresentSearchController(_ searchController: UISearchController) {
+    public func didPresentSearchController(_ searchController: UISearchController) {
         DispatchQueue.main.async {
             searchController.searchBar.becomeFirstResponder()
         }
     }
     
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+    public func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         close()
     }
 }
 
-extension USIGViewController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
-    func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
+extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
+    public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let title: String
         let attributes = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
         
@@ -275,7 +279,7 @@ extension USIGViewController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
         return NSAttributedString(string: title, attributes: attributes)
     }
     
-    func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
+    public func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let description: String
         let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
         
@@ -291,7 +295,7 @@ extension USIGViewController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
         return NSAttributedString(string: description, attributes: attributes)
     }
     
-    func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
+    public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
         return CGFloat(-(UIScreen.main.bounds.size.height / 6))
     }
 }
@@ -325,11 +329,6 @@ private extension String {
 }
 
 fileprivate extension UISearchBar {
-    // From SwifterSwift/UIKit
-    fileprivate var trimmedText: String? {
-        return text?.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var textField: UITextField? {
         return subviews.first?.subviews.flatMap { $0 as? UITextField }.first
@@ -344,7 +343,9 @@ fileprivate extension UISearchBar {
     fileprivate var isLoading: Bool {
         get {
             return activityIndicator != nil
-        } set {
+        }
+        
+        set {
             if newValue {
                 if activityIndicator == nil {
                     let newActivityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)

@@ -1,5 +1,5 @@
 //
-//  Address.swift
+//  USIGNormalizadorAddress.swift
 //  USIGNormalizador
 //
 //  Created by Rita Zerrizuela on 9/28/17.
@@ -9,7 +9,7 @@
 import Foundation
 import Moya
 
-public struct Address {
+public struct USIGNormalizadorAddress {
     var address: String
     let street: String
     let number: Int?
@@ -17,8 +17,8 @@ public struct Address {
     let corner: String?
 }
 
-extension Address: Equatable {
-    public static func ==(lhs: Address, rhs: Address) -> Bool {
+extension USIGNormalizadorAddress: Equatable {
+    public static func ==(lhs: USIGNormalizadorAddress, rhs: USIGNormalizadorAddress) -> Bool {
         return lhs.address == rhs.address && lhs.type == rhs.type
     }
 }

@@ -1,5 +1,5 @@
 //
-//  Provider.swift
+//  USIGNormalizadorProvider.swift
 //  USIGNormalizador
 //
 //  Created by Rita Zerrizuela on 9/28/17.
@@ -9,12 +9,12 @@
 import Foundation
 import Moya
 
-enum USIG {
+enum USIGNormalizadorProvider {
     case normalizar(direccion: String, geocodificar: Bool, max: Int)
     case normalizarCoordenadas(latitud: Float, longitud: Float)
 }
 
-extension USIG: TargetType {
+extension USIGNormalizadorProvider: TargetType {
     var baseURL: URL { return URL(string: "https://servicios.usig.buenosaires.gob.ar")! }
     
     var path: String {
