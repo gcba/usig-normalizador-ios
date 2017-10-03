@@ -45,11 +45,13 @@ public class USIGNormalizador {
             }
             
             for item in addresses {
-                let address = USIGNormalizadorAddress(address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                                                      street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                                                      number: item["altura"] as? Int,
-                                                      type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                                                      corner: item["nombre_calle_cruce"] as? String)
+                let address = USIGNormalizadorAddress(
+                    address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                    street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                    number: item["altura"] as? Int,
+                    type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                    corner: (item["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
                 
                 result.append(address)
             }
