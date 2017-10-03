@@ -45,13 +45,9 @@ class ViewController: UIViewController {
     fileprivate func requestLocation() {
         guard CLLocationManager.authorizationStatus() == .authorizedWhenInUse, let currentLocation = locationManager.location else { return }
         
-        let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: currentLocation.coordinate.latitude, longitud: currentLocation.coordinate.longitude)
-        
-        USIGNormalizador.api.request(request) { response in
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any], let address = json?["direccion"] as? String else { return }
-            
-            DispatchQueue.main.async { [weak self] in
-                self?.geoLabel.text = address
+        USIGNormalizador.location(latitude: currentLocation.coordinate.latitude, longitude: currentLocation.coordinate.longitude) { result in
+            DispatchQueue.main.async { [unowned self] in
+                self.geoLabel.text = result.address
             }
         }
     }

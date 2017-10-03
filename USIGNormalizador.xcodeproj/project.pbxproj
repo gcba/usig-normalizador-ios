@@ -163,10 +163,10 @@
 				C01F09B91F82C43800E422E8 /* USIGNormalizador.storyboard */,
 				D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */,
 				D547F9EB1F7D99B2002977C0 /* Info.plist */,
-				D5CBCCCE1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift */,
-				D5CBCCD01F7DA24600CCF15D /* USIGNormalizadorAddress.swift */,
-				D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */,
 				C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */,
+				D5CBCCD01F7DA24600CCF15D /* USIGNormalizadorAddress.swift */,
+				D5CBCCCE1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift */,
+				D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */,
 				C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */,
 			);
 			path = USIGNormalizador;
