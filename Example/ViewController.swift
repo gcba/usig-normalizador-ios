@@ -13,10 +13,14 @@ import USIGNormalizador
 class ViewController: UIViewController {
     fileprivate let locationManager = CLLocationManager()
     
+    // MARK: - Outlets
+    
     @IBOutlet weak var searchLabel: UILabel!
     @IBOutlet weak var searchButton: UIButton!
     @IBOutlet weak var geoLabel: UILabel!
     @IBOutlet weak var geoButton: UIButton!
+    
+    // MARK: - Actions
     
     @IBAction func searchButtonTapped(sender: UIButton) {
         let search = USIGNormalizador.search()
@@ -36,11 +40,16 @@ class ViewController: UIViewController {
         requestLocation()
     }
     
+    // MARK: - Overrides
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         searchLabel.sizeToFit()
+        geoLabel.sizeToFit()
     }
+    
+    // MARK: - Location
     
     fileprivate func requestLocation() {
         guard CLLocationManager.authorizationStatus() == .authorizedWhenInUse, let currentLocation = locationManager.location else { return }
