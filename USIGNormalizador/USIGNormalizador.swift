@@ -25,7 +25,11 @@ public class USIGNormalizador {
             guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any],
                 let address = json?["direccion"] as? String,
                 let street = json?["nombre_calle"] as? String,
-                let type = json?["tipo"] as? String else { return }
+                let type = json?["tipo"] as? String else {
+                    print("USIGNormalizador ERROR: Location (\(latitude), \(longitude)) not in range.")
+                    
+                    return
+            }
             
             let result = USIGNormalizadorAddress(
                 address: address.trimmingCharacters(in: .whitespacesAndNewlines),
