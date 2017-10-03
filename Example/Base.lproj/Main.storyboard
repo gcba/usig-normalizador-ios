@@ -51,23 +51,52 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G9p-2U-THP">
+                                <rect key="frame" x="187.5" y="436" width="0.0" height="0.0"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                                <size key="shadowOffset" width="0.0" height="0.0"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="xdR-tG-3Wf">
+                                <rect key="frame" x="100" y="456" width="175" height="35"/>
+                                <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="PeQ-IP-hAQ"/>
+                                    <constraint firstAttribute="width" constant="175" id="ZDb-VV-RqE"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="Geolocalizar">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="geoButtonTappedWithSender:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YCN-7w-NJ5"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="TZm-KE-oXl" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="03h-zJ-9Du"/>
                             <constraint firstItem="EKk-lk-JYd" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="0og-8z-Kfu"/>
                             <constraint firstAttribute="trailingMargin" secondItem="TZm-KE-oXl" secondAttribute="trailing" id="4ns-cm-c3o"/>
+                            <constraint firstItem="G9p-2U-THP" firstAttribute="top" secondItem="EKk-lk-JYd" secondAttribute="bottom" constant="47" id="DKb-tY-G9I"/>
                             <constraint firstItem="EKk-lk-JYd" firstAttribute="top" secondItem="TZm-KE-oXl" secondAttribute="bottom" constant="20" id="L0w-4P-GxY"/>
                             <constraint firstItem="TZm-KE-oXl" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="R5D-YW-40L"/>
                             <constraint firstAttribute="leadingMargin" secondItem="rel-2w-Gi3" secondAttribute="leading" id="U88-Tp-dTm"/>
+                            <constraint firstItem="xdR-tG-3Wf" firstAttribute="leading" secondItem="EKk-lk-JYd" secondAttribute="leading" id="cLz-IG-wz6"/>
                             <constraint firstItem="rel-2w-Gi3" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="75" id="dMF-E1-b1u"/>
+                            <constraint firstItem="xdR-tG-3Wf" firstAttribute="centerX" secondItem="G9p-2U-THP" secondAttribute="centerX" id="dYa-m5-yZb"/>
                             <constraint firstAttribute="trailingMargin" secondItem="rel-2w-Gi3" secondAttribute="trailing" id="nfe-hf-RSb"/>
+                            <constraint firstItem="xdR-tG-3Wf" firstAttribute="top" secondItem="G9p-2U-THP" secondAttribute="bottom" constant="20" id="u6y-Rp-xZU"/>
                             <constraint firstAttribute="leadingMargin" secondItem="TZm-KE-oXl" secondAttribute="leading" id="wPj-RS-f8X"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="addressLabel" destination="TZm-KE-oXl" id="3FN-qy-a1Z"/>
+                        <outlet property="geoButton" destination="xdR-tG-3Wf" id="uJk-PV-FKU"/>
+                        <outlet property="geoLabel" destination="G9p-2U-THP" id="b8c-XM-nKY"/>
                         <outlet property="searchButton" destination="EKk-lk-JYd" id="m4B-JF-EqC"/>
+                        <outlet property="searchLabel" destination="TZm-KE-oXl" id="0QL-VL-1sV"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

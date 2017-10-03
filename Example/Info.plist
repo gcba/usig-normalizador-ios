@@ -24,6 +24,10 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+    <key>NSLocationUsageDescription</key>
+    <string>Uso del GPS para...</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Uso del GPS para...</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

@@ -16,7 +16,7 @@ public enum USIGNormalizadorExclusions: String {
 
 public enum USIGNormalizadorAPI {
     case normalizar(direccion: String, excluyendo: String?, geocodificar: Bool, max: Int)
-    case normalizarCoordenadas(latitud: Float, longitud: Float)
+    case normalizarCoordenadas(latitud: Double, longitud: Double)
 }
 
 extension USIGNormalizadorAPI: TargetType {
