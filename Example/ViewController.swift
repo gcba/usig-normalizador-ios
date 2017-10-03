@@ -28,6 +28,7 @@ class ViewController: UIViewController {
         
         search.delegate = self
         search.maxResults = 10
+        search.showPin = true
         
         present(navigationController, animated: true, completion: nil)
     }
@@ -66,6 +67,12 @@ extension ViewController: USIGNormalizadorControllerDelegate {
     func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
         DispatchQueue.main.async { [unowned self] in
             self.searchLabel.text = value.address
+        }
+    }
+    
+    func didSelectPin(_ search: USIGNormalizadorController) {
+        DispatchQueue.main.async { [unowned self] in
+            self.searchLabel.text = "PIN"
         }
     }
 }

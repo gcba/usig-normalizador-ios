@@ -46,6 +46,8 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     
     public var showPin: Bool = false
+    public var pinImageTint: UIColor = UIColor.black
+    public var pinButtonTint: UIColor = UIColor.black
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
@@ -271,13 +273,28 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
 }
 
 extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
+    public func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        switch state {
+            case .Empty:
+                return showPin ? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) : nil
+            case .NotFound:
+                return nil
+            case .Error:
+                return nil
+        }
+    }
+    
+    public func imageTintColor(forEmptyDataSet scrollView: UIScrollView!) -> UIColor! {
+        return pinButtonTint
+    }
+    
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let title: String
-        let attributes = [ NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline) ]
+        let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
         
         switch state {
         case .Empty:
-            title = showPin ? "Fijar la ubicación en el mapa" : ""
+            title = ""
         case .NotFound:
             title = "No Encontrado"
         case .Error:
@@ -303,10 +320,12 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         return NSAttributedString(string: description, attributes: attributes)
     }
     
-    public func buttonImage(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> UIImage! {
+    public func buttonTitle(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> NSAttributedString! {
         switch self.state {
         case .Empty:
-            return showPin ? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) : nil
+            let attributes = [NSForegroundColorAttributeName: pinButtonTint]
+            
+            return showPin ? NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes) : nil
         case .NotFound:
             return nil
         case .Error:
@@ -316,10 +335,13 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
     
     public func emptyDataSet(_ scrollView: UIScrollView!, didTap button: UIButton!) {
         guard showPin else { return }
+        
+        delegate?.didSelectPin(self)
+        close(directly: false)
     }
     
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
-        return CGFloat(-(UIScreen.main.bounds.size.height / 6))
+        return CGFloat(-((UIScreen.main.bounds.size.height - scrollView.frame.size.height) / 2))
     }
 }
 
