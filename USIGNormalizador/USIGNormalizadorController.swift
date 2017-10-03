@@ -45,11 +45,12 @@ public class USIGNormalizadorController: UIViewController {
     public var delegate: USIGNormalizadorControllerDelegate?
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     
+    public var showPin: Bool = false
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .Empty
-    fileprivate let disposeBag = DisposeBag()
+    fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     
     // MARK: - Overrides
@@ -276,7 +277,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         
         switch state {
         case .Empty:
-            title = ""
+            title = showPin ? "Fijar la ubicación en el mapa" : ""
         case .NotFound:
             title = "No Encontrado"
         case .Error:
@@ -300,6 +301,21 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         }
         
         return NSAttributedString(string: description, attributes: attributes)
+    }
+    
+    public func buttonImage(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> UIImage! {
+        switch self.state {
+        case .Empty:
+            return showPin ? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) : nil
+        case .NotFound:
+            return nil
+        case .Error:
+            return nil
+        }
+    }
+    
+    public func emptyDataSet(_ scrollView: UIScrollView!, didTap button: UIButton!) {
+        guard showPin else { return }
     }
     
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
