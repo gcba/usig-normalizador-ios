@@ -18,15 +18,55 @@ public class USIGNormalizador {
         return storyboard.instantiateViewController(withIdentifier: "USIGNormalizador") as! USIGNormalizadorController
     }
     
-    public class func location(latitude: Double, longitude: Double, completion: @escaping (USIGNormalizadorAddress) -> Void) {
+    public class func search(query: String, excluding: String? = nil, maxResults: Int = 10, completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
+        let request = USIGNormalizadorAPI.normalizar(direccion: query, excluyendo: excluding, geocodificar: true, max: maxResults)
+        
+        api.request(request) { response in
+            var result: [USIGNormalizadorAddress] = []
+            let defaultError = "Error calling USIG API"
+            
+            guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any] else {
+                completion(nil, USIGNormalizadorError(defaultError))
+                
+                return
+            }
+            
+            guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+                if let message = json?["errorMessage"] as? String {
+                    message.lowercased().contains("calle inexistente") ?
+                        completion([], USIGNormalizadorError("Street not found")) :
+                        completion([], USIGNormalizadorError("\(defaultError): \(message)"))
+                }
+                else {
+                    completion(nil, USIGNormalizadorError(defaultError))
+                }
+                
+                return
+            }
+            
+            for item in addresses {
+                let address = USIGNormalizadorAddress(address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                                                      street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                                                      number: item["altura"] as? Int,
+                                                      type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                                                      corner: item["nombre_calle_cruce"] as? String)
+                
+                result.append(address)
+            }
+            
+            completion(result, nil)
+        }
+    }
+    
+    public class func location(latitude: Double, longitude: Double, completion: @escaping (USIGNormalizadorAddress?, USIGNormalizadorError?) -> Void) {
         let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: latitude, longitud: longitude)
         
-        USIGNormalizador.api.request(request) { response in
+        api.request(request) { response in
             guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any],
                 let address = json?["direccion"] as? String,
                 let street = json?["nombre_calle"] as? String,
                 let type = json?["tipo"] as? String else {
-                    print("USIGNormalizador ERROR: Location (\(latitude), \(longitude)) not in range.")
+                    completion(nil, USIGNormalizadorError("Location (\(latitude), \(longitude)) not in range"))
                     
                     return
             }
@@ -39,7 +79,7 @@ public class USIGNormalizador {
                 corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
             
-            completion(result)
+            completion(result, nil)
         }
     }
 }

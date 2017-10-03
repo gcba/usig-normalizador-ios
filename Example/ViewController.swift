@@ -54,9 +54,9 @@ class ViewController: UIViewController {
     fileprivate func requestLocation() {
         guard CLLocationManager.authorizationStatus() == .authorizedWhenInUse, let currentLocation = locationManager.location else { return }
         
-        USIGNormalizador.location(latitude: currentLocation.coordinate.latitude, longitude: currentLocation.coordinate.longitude) { result in
+        USIGNormalizador.location(latitude: currentLocation.coordinate.latitude, longitude: currentLocation.coordinate.longitude) { result, error in
             DispatchQueue.main.async { [unowned self] in
-                self.geoLabel.text = result.address
+                self.geoLabel.text = result?.address ?? error?.message
             }
         }
     }
