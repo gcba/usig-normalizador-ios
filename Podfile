@@ -19,4 +19,7 @@ target 'USIGNormalizador' do
   pod 'Moya/RxSwift', '~> 8.0'
   pod 'DZNEmptyDataSet', '~> 1.8'
 
+  target 'USIGNormalizadorTests' do
+    inherit! :search_paths
+  end
 end

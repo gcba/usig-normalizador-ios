@@ -10,27 +10,32 @@ import XCTest
 @testable import USIGNormalizador
 
 class USIGNormalizadorTests: XCTestCase {
-    
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testLocation() {
+        let expect = expectation(description: "Se obtiene la dirección")
+        let timeout = 5.0
+        
+        USIGNormalizador.location(latitude: -34.627847, longitude: -58.365986) { result in
+            XCTAssert(result.address == "NECOCHEA Y PI Y MARGALL, CABA")
+            XCTAssert(result.street == "NECOCHEA")
+            XCTAssert(result.type == "calle_y_calle")
+            XCTAssert(result.corner != nil)
+            XCTAssert(result.corner! == "PI Y MARGALL")
+            
+            expect.fulfill()
+        }
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar obtener la localización: \(error.localizedDescription)")
+            }
         }
     }
-    
 }
