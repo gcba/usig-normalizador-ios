@@ -19,7 +19,7 @@ class USIGNormalizadorTests: XCTestCase {
     }
     
     func testLocation() {
-        let expect = expectation(description: "Se obtiene la dirección")
+        let expect = expectation(description: "Se obtiene la localización")
         let timeout = 5.0
         
         USIGNormalizador.location(latitude: -34.627847, longitude: -58.365986) { result in
