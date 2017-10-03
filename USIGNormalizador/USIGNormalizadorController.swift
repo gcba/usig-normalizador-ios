@@ -8,11 +8,10 @@
 
 import Foundation
 import UIKit
-import SwifterSwift
-import DZNEmptyDataSet
 import RxSwift
 import RxCocoa
 import Moya
+import DZNEmptyDataSet
 
 fileprivate enum SearchState {
     case NotFound
