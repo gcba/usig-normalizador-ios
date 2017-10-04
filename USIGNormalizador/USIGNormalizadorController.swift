@@ -46,6 +46,7 @@ public class USIGNormalizadorController: UIViewController {
     
     public var showPin: Bool = false
     public var forceNormalization: Bool = false
+    public var pinColor: UIColor = UIColor.darkGray
 
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
@@ -273,7 +274,8 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         else if showPin && indexPath.row == 0 {
             let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
             
-            cell.imageView?.image = UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)
+            cell.imageView?.image = UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)?.withRenderingMode(.alwaysTemplate)
+            cell.imageView?.tintColor = pinColor
             cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes)
         }
         else if !forceNormalization, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {

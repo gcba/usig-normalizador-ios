@@ -42,6 +42,7 @@ class ViewController: UIViewController {
         search.maxResults = 10
         search.showPin = showPin
         search.forceNormalization = forceNormalization
+        search.pinColor = UIColor.lightGray
         
         present(navigationController, animated: true, completion: nil)
     }
