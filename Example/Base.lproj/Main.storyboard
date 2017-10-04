@@ -74,6 +74,47 @@
                                     <action selector="geoButtonTappedWithSender:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YCN-7w-NJ5"/>
                                 </connections>
                             </button>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="HBL-7i-JG1">
+                                <rect key="frame" x="71" y="207" width="233.5" height="82"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="HpB-F9-745">
+                                        <rect key="frame" x="0.0" y="0.0" width="80.5" height="31"/>
+                                        <subviews>
+                                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2fz-dK-WqF">
+                                                <rect key="frame" x="0.0" y="0.0" width="51" height="31"/>
+                                                <color key="onTintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <connections>
+                                                    <action selector="pinSwitchValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="Y1E-eh-bsy"/>
+                                                </connections>
+                                            </switch>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Pin" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="k5g-43-yi4">
+                                                <rect key="frame" x="59" y="0.0" width="21.5" height="31"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Fhd-x8-Lgz">
+                                        <rect key="frame" x="0.0" y="51" width="233.5" height="31"/>
+                                        <subviews>
+                                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XXv-XQ-1zS">
+                                                <rect key="frame" x="0.0" y="0.0" width="51" height="31"/>
+                                                <color key="onTintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <connections>
+                                                    <action selector="mandatorySwitchValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="jZt-aC-SbK"/>
+                                                </connections>
+                                            </switch>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Normalización obligatoria" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XbB-kw-nLd">
+                                                <rect key="frame" x="59" y="0.0" width="174.5" height="31"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -84,17 +125,21 @@
                             <constraint firstItem="EKk-lk-JYd" firstAttribute="top" secondItem="TZm-KE-oXl" secondAttribute="bottom" constant="20" id="L0w-4P-GxY"/>
                             <constraint firstItem="TZm-KE-oXl" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="R5D-YW-40L"/>
                             <constraint firstAttribute="leadingMargin" secondItem="rel-2w-Gi3" secondAttribute="leading" id="U88-Tp-dTm"/>
+                            <constraint firstItem="HBL-7i-JG1" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="WkK-2w-4ri"/>
                             <constraint firstItem="xdR-tG-3Wf" firstAttribute="leading" secondItem="EKk-lk-JYd" secondAttribute="leading" id="cLz-IG-wz6"/>
                             <constraint firstItem="rel-2w-Gi3" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="75" id="dMF-E1-b1u"/>
                             <constraint firstItem="xdR-tG-3Wf" firstAttribute="centerX" secondItem="G9p-2U-THP" secondAttribute="centerX" id="dYa-m5-yZb"/>
                             <constraint firstAttribute="trailingMargin" secondItem="rel-2w-Gi3" secondAttribute="trailing" id="nfe-hf-RSb"/>
                             <constraint firstItem="xdR-tG-3Wf" firstAttribute="top" secondItem="G9p-2U-THP" secondAttribute="bottom" constant="20" id="u6y-Rp-xZU"/>
                             <constraint firstAttribute="leadingMargin" secondItem="TZm-KE-oXl" secondAttribute="leading" id="wPj-RS-f8X"/>
+                            <constraint firstItem="EKk-lk-JYd" firstAttribute="top" secondItem="HBL-7i-JG1" secondAttribute="bottom" constant="65" id="zo7-TM-uIW"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="geoButton" destination="xdR-tG-3Wf" id="uJk-PV-FKU"/>
                         <outlet property="geoLabel" destination="G9p-2U-THP" id="b8c-XM-nKY"/>
+                        <outlet property="mandatorySwitch" destination="XXv-XQ-1zS" id="7OI-Ix-BPa"/>
+                        <outlet property="pinSwitch" destination="2fz-dK-WqF" id="hQ2-xa-wac"/>
                         <outlet property="searchButton" destination="EKk-lk-JYd" id="m4B-JF-EqC"/>
                         <outlet property="searchLabel" destination="TZm-KE-oXl" id="0QL-VL-1sV"/>
                     </connections>

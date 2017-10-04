@@ -12,6 +12,8 @@ import USIGNormalizador
 
 class ViewController: UIViewController {
     fileprivate let locationManager = CLLocationManager()
+    fileprivate var showPin = true
+    fileprivate var isMandatory = true
     
     // MARK: - Outlets
     
@@ -19,8 +21,18 @@ class ViewController: UIViewController {
     @IBOutlet weak var searchButton: UIButton!
     @IBOutlet weak var geoLabel: UILabel!
     @IBOutlet weak var geoButton: UIButton!
+    @IBOutlet weak var pinSwitch: UISwitch!
+    @IBOutlet weak var mandatorySwitch: UISwitch!
     
     // MARK: - Actions
+    
+    @IBAction func pinSwitchValueChanged(_ sender: Any) {
+        showPin = pinSwitch.isOn
+    }
+    
+    @IBAction func mandatorySwitchValueChanged(_ sender: Any) {
+        isMandatory = mandatorySwitch.isOn
+    }
     
     @IBAction func searchButtonTapped(sender: UIButton) {
         let search = USIGNormalizador.search()
@@ -28,7 +40,7 @@ class ViewController: UIViewController {
         
         search.delegate = self
         search.maxResults = 10
-        search.showPin = true
+        search.showPin = showPin
         
         present(navigationController, animated: true, completion: nil)
     }
