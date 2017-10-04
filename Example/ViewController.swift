@@ -41,6 +41,7 @@ class ViewController: UIViewController {
         search.delegate = self
         search.maxResults = 10
         search.showPin = showPin
+        search.pinImageTint = UIColor.lightGray
         
         present(navigationController, animated: true, completion: nil)
     }

@@ -15,6 +15,7 @@
 		C01F09BC1F82CEAC00E422E8 /* USIGNormalizador.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */; };
 		C01F09BE1F82D43300E422E8 /* USIGNormalizadorDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */; };
 		C01F09C01F83E43300E422E8 /* USIGNormalizadorError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */; };
+		C046C7B21F85420B00050289 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C01ACADB1F84323900436606 /* Assets.xcassets */; };
 		D547F9F11F7D99B2002977C0 /* USIGNormalizador.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */; };
 		D547F9F61F7D99B2002977C0 /* USIGNormalizadorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */; };
 		D547F9F81F7D99B2002977C0 /* USIGNormalizador.h in Headers */ = {isa = PBXBuildFile; fileRef = D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -31,14 +32,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C01ACAD61F84301500436606 /* PBXContainerItemProxy */ = {
+		C01ACAD91F8430F600436606 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D547F9DE1F7D99B2002977C0 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C01ACACF1F842F3C00436606;
 			remoteInfo = USIGNormalizadorResources;
 		};
-		C01ACAD91F8430F600436606 /* PBXContainerItemProxy */ = {
+		C046C7B01F85415300050289 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D547F9DE1F7D99B2002977C0 /* Project object */;
 			proxyType = 1;
@@ -287,7 +288,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				C01ACAD71F84301500436606 /* PBXTargetDependency */,
+				C046C7B11F85415300050289 /* PBXTargetDependency */,
 			);
 			name = USIGNormalizador;
 			productName = USIGNormalizador;
@@ -405,6 +406,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C046C7B21F85420B00050289 /* Assets.xcassets in Resources */,
 				C01F09BA1F82C43900E422E8 /* USIGNormalizador.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -644,15 +646,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C01ACAD71F84301500436606 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C01ACACF1F842F3C00436606 /* USIGNormalizadorResources */;
-			targetProxy = C01ACAD61F84301500436606 /* PBXContainerItemProxy */;
-		};
 		C01ACADA1F8430F600436606 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C01ACACF1F842F3C00436606 /* USIGNormalizadorResources */;
 			targetProxy = C01ACAD91F8430F600436606 /* PBXContainerItemProxy */;
+		};
+		C046C7B11F85415300050289 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C01ACACF1F842F3C00436606 /* USIGNormalizadorResources */;
+			targetProxy = C046C7B01F85415300050289 /* PBXContainerItemProxy */;
 		};
 		D547F9F31F7D99B2002977C0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -695,7 +697,6 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = USIGNormalizadorResources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = ar.gob.buenosaires.USIGNormalizadorResources;
 				PRODUCT_NAME = USIGNormalizador;
 				SKIP_INSTALL = YES;
@@ -712,7 +713,6 @@
 				ENABLE_BITCODE = YES;
 				INFOPLIST_FILE = USIGNormalizadorResources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = ar.gob.buenosaires.USIGNormalizadorResources;
 				PRODUCT_NAME = USIGNormalizador;
 				SKIP_INSTALL = YES;
@@ -934,6 +934,7 @@
 				C01ACAD41F842F3D00436606 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D547F9E11F7D99B2002977C0 /* Build configuration list for PBXProject "USIGNormalizador" */ = {
 			isa = XCConfigurationList;
