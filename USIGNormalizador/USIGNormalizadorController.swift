@@ -45,8 +45,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     
     public var showPin: Bool = false
-    public var pinImageTint: UIColor = UIColor.black
-    public var pinButtonTint: UIColor = UIColor.black
+    public var forceNormalization: Bool = false
 
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
@@ -126,7 +125,7 @@ public class USIGNormalizadorController: UIViewController {
         _ = table
             .rx.itemSelected
             .subscribe(onNext: { [unowned self] indexPath in
-                return self.handleSelectedItem(index: indexPath.row)
+                return self.handleSelectedItem(indexPath: indexPath)
             })
     }
     
@@ -199,20 +198,28 @@ public class USIGNormalizadorController: UIViewController {
         state = .Error
     }
     
-    private func handleSelectedItem(index: Int) {
-        let result = self.results[index]
-        
-        guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
-            if result.type != "calle_y_calle" {
-                searchController.searchBar.textField?.text = result.street + " "
+    private func handleSelectedItem(indexPath: IndexPath) {
+        if indexPath.section == 1 {
+            let result = self.results[indexPath.row]
+            
+            guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
+                if result.type != "calle_y_calle" {
+                    searchController.searchBar.textField?.text = result.street + " "
+                }
+                
+                return
             }
             
-            return
+            _value = result
+            
+            delegate?.didChange(self, value: result)
+        } else {
+            if indexPath.row == 0 {
+                delegate?.didSelectPin(self)
+            }
         }
         
-        _value = result
         
-        delegate?.didChange(self, value: result)
         close(directly: false)
     }
     
@@ -240,19 +247,33 @@ public class USIGNormalizadorController: UIViewController {
 
 extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate {
     public func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return 2
     }
     
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return results.count
+        let firstSection = (showPin ? 1 : 0) + (!forceNormalization && searchController.searchBar.textField?.text != nil ? 1 : 0)
+        let secondSection = results.count
+        
+        return section == 1 ? secondSection : firstSection
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        cell.textLabel?.attributedText = results[indexPath.row].address
-            .replacingOccurrences(of: ", CABA", with: "")
-            .highlight(searchController.searchBar.textField?.text)
+        if indexPath.section == 1 {
+            cell.imageView?.image = nil
+            cell.textLabel?.attributedText = results[indexPath.row].address.replacingOccurrences(of: ", CABA", with: "").highlight(searchController.searchBar.textField?.text)
+        }
+        else if showPin && indexPath.row == 0 {
+            cell.imageView?.image = UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)
+            cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa")
+        }
+        else if !forceNormalization, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
+            let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: cell.textLabel?.font?.pointSize ?? 14)]
+            
+            cell.imageView?.image = nil
+            cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: attributes)
+        }
         
         return cell
     }
@@ -273,19 +294,8 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
 }
 
 extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
-    public func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
-        switch state {
-            case .Empty:
-                return showPin ? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) : nil
-            case .NotFound:
-                return nil
-            case .Error:
-                return nil
-        }
-    }
-    
-    public func imageTintColor(forEmptyDataSet scrollView: UIScrollView!) -> UIColor! {
-        return pinImageTint
+    public func emptyDataSetShouldBeForced(toDisplay scrollView: UIScrollView!) -> Bool {
+        return results.count == 0
     }
     
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
@@ -320,26 +330,6 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         return NSAttributedString(string: description, attributes: attributes)
     }
     
-    public func buttonTitle(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> NSAttributedString! {
-        switch self.state {
-        case .Empty:
-            let attributes = [NSForegroundColorAttributeName: pinButtonTint]
-            
-            return showPin ? NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes) : nil
-        case .NotFound:
-            return nil
-        case .Error:
-            return nil
-        }
-    }
-    
-    public func emptyDataSet(_ scrollView: UIScrollView!, didTap button: UIButton!) {
-        guard showPin else { return }
-        
-        delegate?.didSelectPin(self)
-        close(directly: false)
-    }
-    
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
         return CGFloat(-((UIScreen.main.bounds.size.height - scrollView.frame.size.height) / 2))
     }
@@ -349,8 +339,8 @@ private extension String {
     func highlight(range boldRange: NSRange) -> NSAttributedString {
         let fontSize = UIFont.systemFontSize
         
-        let bold = [ NSFontAttributeName: UIFont.boldSystemFont(ofSize: fontSize) ]
-        let nonBold = [ NSFontAttributeName: UIFont.systemFont(ofSize: fontSize) ]
+        let bold = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: fontSize)]
+        let nonBold = [NSFontAttributeName: UIFont.systemFont(ofSize: fontSize)]
         let attributedString = NSMutableAttributedString(string: self, attributes: nonBold)
         
         attributedString.setAttributes(bold, range: boldRange)

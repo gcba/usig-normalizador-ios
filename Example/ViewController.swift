@@ -13,7 +13,7 @@ import USIGNormalizador
 class ViewController: UIViewController {
     fileprivate let locationManager = CLLocationManager()
     fileprivate var showPin = true
-    fileprivate var isMandatory = true
+    fileprivate var forceNormalization = true
     
     // MARK: - Outlets
     
@@ -31,7 +31,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func mandatorySwitchValueChanged(_ sender: Any) {
-        isMandatory = mandatorySwitch.isOn
+        forceNormalization = mandatorySwitch.isOn
     }
     
     @IBAction func searchButtonTapped(sender: UIButton) {
@@ -41,8 +41,7 @@ class ViewController: UIViewController {
         search.delegate = self
         search.maxResults = 10
         search.showPin = showPin
-        search.pinImageTint = UIColor(white: 0.9, alpha: 1)
-        search.pinButtonTint = UIColor(red: 0.00, green: 0.46, blue: 1.00, alpha: 1.0)
+        search.forceNormalization = forceNormalization
         
         present(navigationController, animated: true, completion: nil)
     }

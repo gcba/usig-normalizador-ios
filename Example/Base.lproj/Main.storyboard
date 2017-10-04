@@ -75,7 +75,7 @@
                                 </connections>
                             </button>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="HBL-7i-JG1">
-                                <rect key="frame" x="71" y="206" width="233.5" height="82"/>
+                                <rect key="frame" x="86.5" y="206" width="202.5" height="82"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="HpB-F9-745">
                                         <rect key="frame" x="0.0" y="0.0" width="137.5" height="31"/>
@@ -96,7 +96,7 @@
                                         </subviews>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Fhd-x8-Lgz">
-                                        <rect key="frame" x="0.0" y="51" width="233.5" height="31"/>
+                                        <rect key="frame" x="0.0" y="51" width="202.5" height="31"/>
                                         <subviews>
                                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XXv-XQ-1zS">
                                                 <rect key="frame" x="0.0" y="0.0" width="51" height="31"/>
@@ -105,8 +105,8 @@
                                                     <action selector="mandatorySwitchValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="jZt-aC-SbK"/>
                                                 </connections>
                                             </switch>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Normalización obligatoria" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XbB-kw-nLd">
-                                                <rect key="frame" x="59" y="0.0" width="174.5" height="31"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Forzar normalización" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XbB-kw-nLd">
+                                                <rect key="frame" x="59" y="0.0" width="143.5" height="31"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
