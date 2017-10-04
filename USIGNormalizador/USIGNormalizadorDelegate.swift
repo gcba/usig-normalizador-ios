@@ -12,10 +12,12 @@ public protocol USIGNormalizadorControllerDelegate {
     func exclude(_ search: USIGNormalizadorController) -> String
     func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress)
     func didSelectPin(_ search: USIGNormalizadorController)
+    func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: String)
 }
 
 extension USIGNormalizadorControllerDelegate {
     public func exclude(_ search: USIGNormalizadorController) -> String { return USIGNormalizadorExclusions.GBA.rawValue }
     public func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {}
     public func didSelectPin(_ search: USIGNormalizadorController) {}
+    public func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: String) {}
 }

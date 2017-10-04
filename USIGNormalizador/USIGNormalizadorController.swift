@@ -124,9 +124,7 @@ public class USIGNormalizadorController: UIViewController {
         
         _ = table
             .rx.itemSelected
-            .subscribe(onNext: { [unowned self] indexPath in
-                return self.handleSelectedItem(indexPath: indexPath)
-            })
+            .subscribe(onNext: self.handleSelectedItem)
     }
     
     // MARK: - Helper methods
@@ -157,6 +155,7 @@ public class USIGNormalizadorController: UIViewController {
     
     private func handleResults(_ results: Any) {
         self.results = []
+        
         searchController.searchBar.isLoading = false
         
         guard let json = results as? [String: Any] else {
@@ -166,7 +165,7 @@ public class USIGNormalizadorController: UIViewController {
         }
         
         guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") {
+            if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
                 state = .NotFound
             }
             else {
@@ -179,11 +178,13 @@ public class USIGNormalizadorController: UIViewController {
         }
         
         for item in addresses {
-            let address = USIGNormalizadorAddress(address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
-                                      street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
-                                      number: item["altura"] as? Int,
-                                      type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
-                                      corner: item["nombre_calle_cruce"] as? String)
+            let address = USIGNormalizadorAddress(
+                address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
+                street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
+                number: item["altura"] as? Int,
+                type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
+                corner: item["nombre_calle_cruce"] as? String
+            )
             
             self.results.append(address)
         }
@@ -204,7 +205,10 @@ public class USIGNormalizadorController: UIViewController {
             
             guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
                 if result.type != "calle_y_calle" {
-                    searchController.searchBar.textField?.text = result.street + " "
+                    DispatchQueue.main.async { [unowned self] in
+                        self.searchController.searchBar.textField?.text = result.street + " "
+                        self.table.reloadSections(IndexSet(integer: 0), with: .none)
+                    }
                 }
                 
                 return
@@ -214,11 +218,13 @@ public class USIGNormalizadorController: UIViewController {
             
             delegate?.didChange(self, value: result)
         } else {
-            if indexPath.row == 0 {
+            if showPin && indexPath.row == 0 {
                 delegate?.didSelectPin(self)
             }
+            else if !forceNormalization, let cell = table.cellForRow(at: indexPath), let text = cell.textLabel?.text {
+                delegate?.didSelectUnnormalizedAddress(self, value: text)
+            }
         }
-        
         
         close(directly: false)
     }
@@ -251,10 +257,10 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
     }
     
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let firstSection = (showPin ? 1 : 0) + (!forceNormalization && searchController.searchBar.textField?.text != nil ? 1 : 0)
-        let secondSection = results.count
+        let pinCell = showPin ? 1 : 0
+        let normalizationCell = !forceNormalization && searchController.searchBar.textField?.text != nil && searchController.searchBar.textField?.text != "" ? 1 : 0
         
-        return section == 1 ? secondSection : firstSection
+        return section == 1 ? results.count : (pinCell + normalizationCell)
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -265,11 +271,13 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.textLabel?.attributedText = results[indexPath.row].address.replacingOccurrences(of: ", CABA", with: "").highlight(searchController.searchBar.textField?.text)
         }
         else if showPin && indexPath.row == 0 {
+            let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
+            
             cell.imageView?.image = UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)
-            cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa")
+            cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes)
         }
         else if !forceNormalization, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
-            let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: cell.textLabel?.font?.pointSize ?? 14)]
+            let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
             
             cell.imageView?.image = nil
             cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: attributes)

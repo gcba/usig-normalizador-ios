@@ -88,6 +88,12 @@ extension ViewController: USIGNormalizadorControllerDelegate {
             self.searchLabel.text = "PIN"
         }
     }
+    
+    func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: String) {
+        DispatchQueue.main.async { [unowned self] in
+            self.searchLabel.text = value
+        }
+    }
 }
 
 extension ViewController: CLLocationManagerDelegate {
