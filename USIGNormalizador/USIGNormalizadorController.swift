@@ -47,6 +47,7 @@ public class USIGNormalizadorController: UIViewController {
     public var showPin: Bool = false
     public var pinImageTint: UIColor = UIColor.black
     public var pinButtonTint: UIColor = UIColor.black
+
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
@@ -284,7 +285,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
     }
     
     public func imageTintColor(forEmptyDataSet scrollView: UIScrollView!) -> UIColor! {
-        return pinButtonTint
+        return pinImageTint
     }
     
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
