@@ -28,13 +28,14 @@ public class USIGNormalizadorController: UIViewController {
     // MARK: - Properties
 
     public var delegate: USIGNormalizadorControllerDelegate?
+    public var edit: String?
     
     fileprivate var exclusions: String {
         return delegate?.exclude(self) ?? USIGNormalizadorExclusions.GBA.rawValue
     }
     
     fileprivate var maxResults: Int {
-        return  delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : 10
+        return delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : 10
     }
     
     fileprivate var showPin: Bool {
@@ -60,7 +61,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var rowsInFirstSection: Int {
         let pinCell = showPin ? 1 : 0
         let normalizationCell = !forceNormalization && !hideForceNormalizationCell &&
-            searchController.searchBar.textField?.text != nil && searchController.searchBar.textField?.text != "" ? 1 : 0
+            searchController.searchBar.textField?.text != nil && searchController.searchBar.textField!.text!.trimmingCharacters(in: whitespace).characters.count > 0 ? 1 : 0
     
         return pinCell + normalizationCell
     }
@@ -73,6 +74,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var state: SearchState = .Empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
+    fileprivate let addressSufix: String = ", CABA"
     fileprivate var hideForceNormalizationCell: Bool = false
     
     // MARK: - Overrides
@@ -83,6 +85,7 @@ public class USIGNormalizadorController: UIViewController {
         setupNavigationBar()
         setupTableView()
         setupRx()
+        setInitialValue()
         
         definesPresentationContext = true
     }
@@ -103,7 +106,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.text = value?.address.replacingOccurrences(of: ", CABA", with: "")
+        searchController.searchBar.text = value?.address.replacingOccurrences(of: addressSufix, with: "")
         
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
@@ -148,12 +151,18 @@ public class USIGNormalizadorController: UIViewController {
             .subscribe(onNext: self.handleSelectedItem)
     }
     
+    private func setInitialValue() {
+        if let initialValue = edit {
+            searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
+        }
+    }
+    
     // MARK: - Helper methods
     
     private func filterSearch() -> Bool {
         if let text = searchController.searchBar.text, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
         else  {
-            searchController.searchBar.textField?.text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
+            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .Empty
             results = []
             
@@ -211,14 +220,22 @@ public class USIGNormalizadorController: UIViewController {
             
             self.results.append(address)
 
-            if !forceNormalization {
-                let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-                
-                if unnormalizedText == address.address.replacingOccurrences(of: ", CABA", with: ""), !hideForceNormalizationCell {
-                    deleteRow = true
+            if !forceNormalization, let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased() {
+                if unnormalizedText == address.address.replacingOccurrences(of: addressSufix, with: "") {
+                    if rowsInFirstSection <= 1 {
+                        insertRow = false
+                    }
+                    else if rowsInFirstSection > 1 {
+                        deleteRow = !hideForceNormalizationCell
+                    }
                 }
-                else if hideForceNormalizationCell {
-                    insertRow = true
+                else {
+                    if rowsInFirstSection <= 1 {
+                        insertRow = true
+                    }
+                    else if rowsInFirstSection > 1 {
+                        deleteRow = false
+                    }
                 }
             }
         }
@@ -264,6 +281,10 @@ public class USIGNormalizadorController: UIViewController {
                 }
                 
                 hideForceNormalizationCell = true
+                
+                DispatchQueue.main.async { [unowned self] in
+                    self.table.reloadSections(IndexSet(integer: 1), with: .none)
+                }
                 
                 return
             }
@@ -314,7 +335,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         
         if indexPath.section == 1 {
             cell.imageView?.image = nil
-            cell.textLabel?.attributedText = results[indexPath.row].address.replacingOccurrences(of: ", CABA", with: "").highlight(searchController.searchBar.textField?.text)
+            cell.textLabel?.attributedText = results[indexPath.row].address.replacingOccurrences(of: addressSufix, with: "").highlight(searchController.searchBar.textField?.text)
         }
         else if showPin && indexPath.row == 0 {
             let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
@@ -323,7 +344,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.imageView?.tintColor = pinColor
             cell.textLabel?.attributedText = NSAttributedString(string: pinText, attributes: attributes)
         }
-        else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
+        else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace) {
             let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
             
             cell.imageView?.image = nil

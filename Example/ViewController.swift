@@ -11,6 +11,8 @@ import CoreLocation
 import USIGNormalizador
 
 class ViewController: UIViewController {
+    fileprivate var currentAddress: USIGNormalizadorAddress?
+    
     fileprivate let locationManager = CLLocationManager()
     fileprivate var showPin = true
     fileprivate var forceNormalization = true
@@ -39,6 +41,7 @@ class ViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: search)
         
         search.delegate = self
+        search.edit = searchLabel.text
         
         present(navigationController, animated: true, completion: nil)
     }
@@ -78,6 +81,8 @@ extension ViewController: USIGNormalizadorControllerDelegate {
     func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool { return forceNormalization }
     
     func didSelectValue(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
+        currentAddress = value
+        
         DispatchQueue.main.async { [unowned self] in
             self.searchLabel.text = value.address
         }
