@@ -53,6 +53,10 @@ public class USIGNormalizadorController: UIViewController {
         return (delegate?.pinImage(self) ?? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil))?.withRenderingMode(.alwaysTemplate)
     }
     
+    fileprivate var pinText: String {
+        return delegate?.pinText(self) ?? "Fijar la ubicación en el mapa"
+    }
+    
     fileprivate var rowsInFirstSection: Int {
         let pinCell = showPin ? 1 : 0
         let normalizationCell = !forceNormalization && !hideForceNormalizationCell &&
@@ -296,7 +300,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             
             cell.imageView?.image = pinImage
             cell.imageView?.tintColor = pinColor
-            cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes)
+            cell.textLabel?.attributedText = NSAttributedString(string: pinText, attributes: attributes)
         }
         else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
             let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
