@@ -197,6 +197,9 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
         
+        var insertRow = false
+        var deleteRow = false
+        
         for item in addresses {
             let address = USIGNormalizadorAddress(
                 address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
@@ -206,21 +209,39 @@ public class USIGNormalizadorController: UIViewController {
                 corner: item["nombre_calle_cruce"] as? String
             )
             
+            self.results.append(address)
+
             if !forceNormalization {
                 let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
                 
-                if unnormalizedText == address.address.replacingOccurrences(of: ", CABA", with: "") {
-                    hideForceNormalizationCell = true
+                if unnormalizedText == address.address.replacingOccurrences(of: ", CABA", with: ""), !hideForceNormalizationCell {
+                    deleteRow = true
                 }
-                else {
-                    hideForceNormalizationCell = false
+                else if hideForceNormalizationCell {
+                    insertRow = true
                 }
             }
-            
-            self.results.append(address)
         }
         
-        reloadTable()
+        if insertRow || deleteRow {
+            DispatchQueue.main.async { [unowned self] in
+                self.table.reloadSections(IndexSet(integer: 1), with: .none)
+
+                if insertRow {
+                    self.hideForceNormalizationCell = false
+                    self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
+                }
+                else {
+                    let row = self.rowsInFirstSection - 1
+                    
+                    self.hideForceNormalizationCell = true
+                    self.table.deleteRows(at: [IndexPath(row: row, section: 0)], with: .automatic)
+                }
+            }
+        }
+        else {
+            reloadTable()
+        }
     }
     
     private func handleError(_ error: Swift.Error) {
