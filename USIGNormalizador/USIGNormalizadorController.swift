@@ -52,6 +52,14 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var pinImage: UIImage! {
         return (delegate?.pinImage(self) ?? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil))?.withRenderingMode(.alwaysTemplate)
     }
+    
+    fileprivate var rowsInFirstSection: Int {
+        let pinCell = showPin ? 1 : 0
+        let normalizationCell = !forceNormalization && !hideForceNormalizationCell &&
+            searchController.searchBar.textField?.text != nil && searchController.searchBar.textField?.text != "" ? 1 : 0
+    
+        return pinCell + normalizationCell
+    }
 
     fileprivate var value: USIGNormalizadorAddress?
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
@@ -61,6 +69,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var state: SearchState = .Empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
+    fileprivate var hideForceNormalizationCell: Bool = false
     
     // MARK: - Overrides
     
@@ -163,7 +172,6 @@ public class USIGNormalizadorController: UIViewController {
     
     private func handleResults(_ results: Any) {
         self.results = []
-        
         searchController.searchBar.isLoading = false
         
         guard let json = results as? [String: Any] else {
@@ -187,12 +195,23 @@ public class USIGNormalizadorController: UIViewController {
         
         for item in addresses {
             let address = USIGNormalizadorAddress(
-                address: (item["direccion"] as! String).trimmingCharacters(in: whitespace),
+                address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
                 street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
                 number: item["altura"] as? Int,
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                 corner: item["nombre_calle_cruce"] as? String
             )
+            
+            if !forceNormalization {
+                let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+                
+                if unnormalizedText == address.address.replacingOccurrences(of: ", CABA", with: "") {
+                    hideForceNormalizationCell = true
+                }
+                else {
+                    hideForceNormalizationCell = false
+                }
+            }
             
             self.results.append(address)
         }
@@ -218,6 +237,8 @@ public class USIGNormalizadorController: UIViewController {
                         self.table.reloadSections(IndexSet(integer: 0), with: .none)
                     }
                 }
+                
+                hideForceNormalizationCell = true
                 
                 return
             }
@@ -260,16 +281,8 @@ public class USIGNormalizadorController: UIViewController {
 // MARK: - Extensions
 
 extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate {
-    public func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
-    }
-    
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let pinCell = showPin ? 1 : 0
-        let normalizationCell = !forceNormalization && searchController.searchBar.textField?.text != nil && searchController.searchBar.textField?.text != "" ? 1 : 0
-        
-        return section == 1 ? results.count : (pinCell + normalizationCell)
-    }
+    public func numberOfSections(in tableView: UITableView) -> Int { return 2 }
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return section == 1 ? results.count : rowsInFirstSection }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
@@ -285,7 +298,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.imageView?.tintColor = pinColor
             cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes)
         }
-        else if !forceNormalization, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
+        else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: .whitespacesAndNewlines) {
             let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
             
             cell.imageView?.image = nil
