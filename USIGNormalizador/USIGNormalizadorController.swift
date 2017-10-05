@@ -27,8 +27,6 @@ public class USIGNormalizadorController: UIViewController {
     
     // MARK: - Properties
 
-    private var value: USIGNormalizadorAddress?
-
     public var delegate: USIGNormalizadorControllerDelegate?
     
     fileprivate var exclusions: String {
@@ -55,6 +53,7 @@ public class USIGNormalizadorController: UIViewController {
         return (delegate?.pinImage(self) ?? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil))?.withRenderingMode(.alwaysTemplate)
     }
 
+    fileprivate var value: USIGNormalizadorAddress?
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
