@@ -27,27 +27,35 @@ public class USIGNormalizadorController: UIViewController {
     
     // MARK: - Properties
 
-    private var _value: USIGNormalizadorAddress?
-    public var value: USIGNormalizadorAddress? { return _value }
-    
-    private var _max: Int = 10
-    public var maxResults: Int {
-        get {
-            return _max
-        }
-        
-        set {
-            _max = newValue > 0 ? newValue : _max
-        }
-    }
+    private var value: USIGNormalizadorAddress?
 
     public var delegate: USIGNormalizadorControllerDelegate?
-    fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     
-    public var showPin: Bool = false
-    public var forceNormalization: Bool = false
-    public var pinColor: UIColor = UIColor.darkGray
+    fileprivate var exclusions: String {
+        return delegate?.exclude(self) ?? USIGNormalizadorExclusions.GBA.rawValue
+    }
+    
+    fileprivate var maxResults: Int {
+        return  delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : 10
+    }
+    
+    fileprivate var showPin: Bool {
+        return delegate?.shouldShowPin(self) ?? false
+    }
+    
+    fileprivate var forceNormalization: Bool {
+        return delegate?.shouldForceNormalization(self) ?? false
+    }
+    
+    fileprivate var pinColor: UIColor {
+        return delegate?.pinColor(self) ?? UIColor.darkGray
+    }
+    
+    fileprivate var pinImage: UIImage! {
+        return (delegate?.pinImage(self) ?? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil))?.withRenderingMode(.alwaysTemplate)
+    }
 
+    fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
@@ -83,7 +91,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.text = _value?.address.replacingOccurrences(of: ", CABA", with: "")
+        searchController.searchBar.text = value?.address.replacingOccurrences(of: ", CABA", with: "")
         
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
@@ -144,12 +152,12 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func makeRequest(_ query: String) -> Observable<Any> {
-        let exclusion = delegate?.exclude(self) ?? USIGNormalizadorExclusions.GBA.rawValue
+        let request = USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
         
         searchController.searchBar.isLoading = true
         
         return provider
-            .request(USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusion, geocodificar: true, max: _max))
+            .request(request)
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
     }
@@ -215,9 +223,9 @@ public class USIGNormalizadorController: UIViewController {
                 return
             }
             
-            _value = result
+            value = result
             
-            delegate?.didChange(self, value: result)
+            delegate?.didSelectValue(self, value: result)
         } else {
             if showPin && indexPath.row == 0 {
                 delegate?.didSelectPin(self)
@@ -274,7 +282,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         else if showPin && indexPath.row == 0 {
             let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
             
-            cell.imageView?.image = UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)?.withRenderingMode(.alwaysTemplate)
+            cell.imageView?.image = pinImage
             cell.imageView?.tintColor = pinColor
             cell.textLabel?.attributedText = NSAttributedString(string: "Fijar la ubicación en el mapa", attributes: attributes)
         }

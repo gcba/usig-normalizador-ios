@@ -39,10 +39,6 @@ class ViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: search)
         
         search.delegate = self
-        search.maxResults = 10
-        search.showPin = showPin
-        search.forceNormalization = forceNormalization
-        search.pinColor = UIColor.lightGray
         
         present(navigationController, animated: true, completion: nil)
     }
@@ -78,7 +74,10 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: USIGNormalizadorControllerDelegate {
-    func didChange(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
+    func shouldShowPin(_ search: USIGNormalizadorController) -> Bool { return showPin }
+    func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool { return forceNormalization }
+    
+    func didSelectValue(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
         DispatchQueue.main.async { [unowned self] in
             self.searchLabel.text = value.address
         }
