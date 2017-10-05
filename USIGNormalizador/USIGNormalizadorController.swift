@@ -222,19 +222,13 @@ public class USIGNormalizadorController: UIViewController {
 
             if !forceNormalization, let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased() {
                 if unnormalizedText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                    if rowsInFirstSection <= 1 {
-                        insertRow = false
-                    }
-                    else if rowsInFirstSection > 1 {
+                    if rowsInFirstSection > 1 {
                         deleteRow = !hideForceNormalizationCell
                     }
                 }
                 else {
                     if rowsInFirstSection <= 1 {
                         insertRow = true
-                    }
-                    else if rowsInFirstSection > 1 {
-                        deleteRow = false
                     }
                 }
             }
