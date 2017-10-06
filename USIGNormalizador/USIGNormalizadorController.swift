@@ -62,7 +62,7 @@ public class USIGNormalizadorController: UIViewController {
         let pinCell = showPin ? 1 : 0
         let normalizationCell = !forceNormalization && !hideForceNormalizationCell &&
             searchController.searchBar.textField?.text != nil && searchController.searchBar.textField!.text!.trimmingCharacters(in: whitespace).characters.count > 0 ? 1 : 0
-    
+        
         return pinCell + normalizationCell
     }
 
@@ -75,7 +75,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
-    fileprivate var hideForceNormalizationCell: Bool = false
+    fileprivate var hideForceNormalizationCell: Bool = true
     
     // MARK: - Overrides
     
@@ -213,6 +213,7 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
         
+        var isEqual = false
         var insertRow = false
         var deleteRow = false
         
@@ -227,20 +228,23 @@ public class USIGNormalizadorController: UIViewController {
             
             self.results.append(address)
 
-            if !forceNormalization, let unnormalizedText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased() {
-                if unnormalizedText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                    if rowsInFirstSection > 1 {
+            if !forceNormalization {
+                let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
+                
+                if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
+                    isEqual = true
+                    
+                    if showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1) {
                         deleteRow = !hideForceNormalizationCell
-                    }
-                }
-                else {
-                    if rowsInFirstSection <= 1 {
-                        insertRow = true
                     }
                 }
             }
         }
         
+        if !forceNormalization {
+            insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0))
+        }
+
         if insertRow || deleteRow {
             DispatchQueue.main.async { [unowned self] in
                 self.table.reloadSections(IndexSet(integer: 1), with: .none)
@@ -274,19 +278,20 @@ public class USIGNormalizadorController: UIViewController {
             let result = self.results[indexPath.row]
             
             guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
-                if result.type != "calle_y_calle" {
-                    DispatchQueue.main.async { [unowned self] in
-                        self.searchController.searchBar.textField?.text = result.street + " "
+                DispatchQueue.main.async { [unowned self] in
+                    self.results = []
+                    
+                    self.results.append(result)
+                    self.table.reloadSections(IndexSet(integer: 1), with: .none)
+                    
+                    if !self.forceNormalization {
+                        self.hideForceNormalizationCell = true
                         self.table.reloadSections(IndexSet(integer: 0), with: .none)
                     }
+                    
+                    self.searchController.searchBar.textField?.text = result.street + " "
                 }
-                
-                hideForceNormalizationCell = true
-                
-                DispatchQueue.main.async { [unowned self] in
-                    self.table.reloadSections(IndexSet(integer: 1), with: .none)
-                }
-                
+
                 return
             }
             
