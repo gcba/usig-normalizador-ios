@@ -82,6 +82,7 @@ public class USIGNormalizadorController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         
+        checkDelegate()
         setupNavigationBar()
         setupTableView()
         setupRx()
@@ -158,6 +159,12 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     // MARK: - Helper methods
+    
+    private func checkDelegate() {
+        if delegate == nil {
+            fatalError("USIGNormalizadorController delegate is not implemented.")
+        }
+    }
     
     private func filterSearch() -> Bool {
         if let text = searchController.searchBar.text, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }

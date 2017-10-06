@@ -37,11 +37,11 @@ class ViewController: UIViewController {
     }
     
     @IBAction func searchButtonTapped(sender: UIButton) {
-        let search = USIGNormalizador.search()
-        let navigationController = UINavigationController(rootViewController: search)
+        let searchController = USIGNormalizador.searchController()
+        let navigationController = UINavigationController(rootViewController: searchController)
         
-        search.delegate = self
-        search.edit = searchLabel.text
+        searchController.delegate = self
+        searchController.edit = searchLabel.text
         
         present(navigationController, animated: true, completion: nil)
     }

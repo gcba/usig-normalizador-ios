@@ -12,7 +12,7 @@ import Moya
 public class USIGNormalizador {
     public static let api: MoyaProvider<USIGNormalizadorAPI> = MoyaProvider<USIGNormalizadorAPI>()
     
-    public class func search() -> USIGNormalizadorController {
+    public class func searchController() -> USIGNormalizadorController {
         let storyboard = UIStoryboard(name: "USIGNormalizador", bundle: Bundle(for: USIGNormalizador.self))
         
         return storyboard.instantiateViewController(withIdentifier: "USIGNormalizador") as! USIGNormalizadorController
