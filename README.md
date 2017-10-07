@@ -1,6 +1,58 @@
 # USIGNormalizador
 
-Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar). Escrito en Swift 3.
+Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar). Escrito en Swift 3.
+
+## Métodos
+
+### Búsqueda por calle
+
+Devuelve un array de direcciones ordenadas por relevancia de acuerdo al término de búsqueda.
+
+```swift
+USIGNormalizador.search(query: <Nombre o parte del nombre de una calle>) { result, error in
+	// Do something
+}
+```
+
+#### Parámetros opcionales
+
+##### excluding (String?)
+
+Localidades a excluir de la búsqueda, separadas por coma. Por defecto se excluyen todas las localidades que no pertenecen a la CABA (para buscar sólo entre las calles de la Ciudad).
+
+```swift
+USIGNormalizador.search(query: "Callao", excluding: nil) { result, error in
+	// Do something
+}
+```
+
+##### maxResults (Int)
+
+Cantidad máxima de resultados a devolver. Por defecto son 10.
+
+```swift
+USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
+	// Do something
+}
+```
+
+Los parámetros opcionales pueden ir juntos o separados.
+
+```swift
+USIGNormalizador.search(query: "Callao", excluding: nil, maxResults: 7) { result, error in
+	// Do something
+}
+```
+
+### Búsqueda por coordenadas
+
+Devuelve la dirección de la esquina más próxima a una latitud/longitud.
+
+```swift
+USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { result, error in
+	// Do something
+}
+```
 
 ## UI
 
@@ -109,58 +161,6 @@ func pinText(_ search: USIGNormalizadorController) -> String {
 }
 ```
 
-## Métodos
-
-### Búsqueda por calle
-
-Devuelve un array de direcciones ordenadas por relevancia de acuerdo al término de búsqueda.
-
-```swift
-USIGNormalizador.search(query: <Nombre o parte del nombre de una calle>) { result, error in
-	// Do something
-}
-```
-
-#### Parámetros opcionales
-
-##### excluding (String?)
-
-Localidades a excluir de la búsqueda, separadas por coma. Por defecto se excluyen todas las localidades que no pertenecen a la CABA (para buscar sólo entre las calles de la Ciudad).
-
-```swift
-USIGNormalizador.search(query: "Callao", excluding: nil) { result, error in
-	// Do something
-}
-```
-
-##### maxResults (Int)
-
-Cantidad máxima de resultados a devolver. Por defecto son 10.
-
-```swift
-USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
-	// Do something
-}
-```
-
-Los parámetros opcionales pueden ir juntos o separados.
-
-```swift
-USIGNormalizador.search(query: "Callao", excluding: nil, maxResults: 7) { result, error in
-	// Do something
-}
-```
-
-### Búsqueda por coordenadas
-
-Devuelve la dirección de la esquina más próxima a una latitud/longitud.
-
-```swift
-USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { result, error in
-	// Do something
-}
-```
-
 ## API
 
-`USIGNormalizador.api` expone un [Moya provider](https://github.com/Moya/Moya) para realizar llamadas directas al [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar).
+`USIGNormalizador.api` expone un [Moya provider](https://github.com/Moya/Moya) para realizar llamadas directas al [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar).
