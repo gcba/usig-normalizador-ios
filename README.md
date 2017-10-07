@@ -54,11 +54,11 @@ USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { 
 }
 ```
 
-## UI
+## Interfaz
 
 ![Screeshot](https://raw.githubusercontent.com/gcba/usig-normalizador-ios/master/screenshot.png "Vista de búsqueda")
 
-El controlador de la interfaz de búsqueda debe ser presentado por un `UINavigationController`.
+Permite buscar por calle. El controlador de la interfaz de búsqueda debe ser presentado por un `UINavigationController`.
 
 ```swift
 let searchController = USIGNormalizador.searchController()
