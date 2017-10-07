@@ -2,6 +2,24 @@
 
 Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar). Escrito en Swift 3.
 
+## Instalación
+
+### Cocoapods
+
+En el `Podfile`del proyecto:
+
+```ruby
+pod 'USIGNormalizador', '~> 0.1'
+```
+
+### Carthage
+
+En el `Cartfile` del proyecto:
+
+```
+github "gcba/USIGNormalizador" ~> 0.1
+```
+
 ## Métodos
 
 ### Búsqueda por calle
