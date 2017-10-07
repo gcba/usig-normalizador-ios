@@ -118,7 +118,7 @@ Si se fuerza la normalización de las direcciones. El valor por defecto es `true
 
 ```swift
 func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool {
-    return true
+    return false
 }
 ```
 
