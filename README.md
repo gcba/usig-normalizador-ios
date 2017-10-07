@@ -117,7 +117,7 @@ El controlador de búsqueda se configura implementando métodos del protocolo `U
 Si se fuerza la normalización de las direcciones. El valor por defecto es `true`.
 
 ```swift
-func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool {
+func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool {
     return true
 }
 ```
@@ -127,7 +127,7 @@ func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool {
 Si se muestra la celda con el pin. El valor por defecto es `false`.
 
 ```swift
-func shouldShowPin(_ search: USIGNormalizadorController) -> Bool {
+func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool {
     return true
 }
 ```
@@ -137,7 +137,7 @@ func shouldShowPin(_ search: USIGNormalizadorController) -> Bool {
 Se ejecuta al tapear en uno de los resultados de la búsqueda.
 
 ```swift
-func didSelectValue(_ search: USIGNormalizadorController, value: USIGNormalizadorAddress) {
+func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress) {
     // Do something
 }
 ```
@@ -147,7 +147,7 @@ func didSelectValue(_ search: USIGNormalizadorController, value: USIGNormalizado
 Cuando se selecciona la dirección custom escrita por el usuario.
 
 ```swift
-func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: String) {
+func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String) {
     // Do something
 }
 ```
@@ -157,7 +157,7 @@ func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: S
 Se ejecuta al tapear la celda del pin.
 
 ```swift
-func didSelectPin(_ search: USIGNormalizadorController) {
+func didSelectPin(_ searchController: USIGNormalizadorController) {
     // Do something
 }
 ```
@@ -167,7 +167,7 @@ func didSelectPin(_ search: USIGNormalizadorController) {
 Localidades a excluir de la búsqueda, separadas por coma. El valor por defecto son las localidades del AMBA.
 
 ```swift
-func exclude(_ search: USIGNormalizadorController) -> String { return
+func exclude(_ searchController: USIGNormalizadorController) -> String { return
     nil
 }
 ```
@@ -177,7 +177,7 @@ func exclude(_ search: USIGNormalizadorController) -> String { return
 Cantidad máxima de resultados a devolver. Por defecto es 10.
 
 ```swift
-func maxResults(_ search: USIGNormalizadorController) -> Int {
+func maxResults(_ searchController: USIGNormalizadorController) -> Int {
     return 7
 }
 ```
@@ -187,7 +187,7 @@ func maxResults(_ search: USIGNormalizadorController) -> Int {
 Color de tint que se aplicará a la imagen del pin. El color por defecto es `UIColor.darkGray`.
 
 ```swift
-func pinColor(_ search: USIGNormalizadorController) -> UIColor {
+func pinColor(_ searchController: USIGNormalizadorController) -> UIColor {
     return UIColor.black
 }
 ```
@@ -197,7 +197,7 @@ func pinColor(_ search: USIGNormalizadorController) -> UIColor {
 Permite cambiar la imagen del pin.
 
 ```swift
-func pinImage(_ search: USIGNormalizadorController) -> UIImage! {
+func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! {
     return UIImage(named: "MyPin")
 }
 ```
@@ -207,7 +207,7 @@ func pinImage(_ search: USIGNormalizadorController) -> UIImage! {
 El texto que aparecerá junto al pin. Por defecto es `"Fijar la ubicación en el mapa"`.
 
 ```swift
-func pinText(_ search: USIGNormalizadorController) -> String {
+func pinText(_ searchController: USIGNormalizadorController) -> String {
     return "Marcar en el mapa"
 }
 ```
