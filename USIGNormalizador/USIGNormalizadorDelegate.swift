@@ -22,7 +22,7 @@ public protocol USIGNormalizadorControllerDelegate {
 }
 
 extension USIGNormalizadorControllerDelegate {
-    public func exclude(_ search: USIGNormalizadorController) -> String { return USIGNormalizadorExclusions.GBA.rawValue }
+    public func exclude(_ search: USIGNormalizadorController) -> String { return USIGNormalizadorExclusions.AMBA.rawValue }
     public func maxResults(_ search: USIGNormalizadorController) -> Int { return 10 }
     public func pinColor(_ search: USIGNormalizadorController) -> UIColor { return UIColor.darkGray }
     public func pinImage(_ search: USIGNormalizadorController) -> UIImage! { return UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) }
