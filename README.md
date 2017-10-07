@@ -167,8 +167,8 @@ func didSelectPin(_ searchController: USIGNormalizadorController) {
 Localidades a excluir de la búsqueda, separadas por coma. El valor por defecto son las localidades del AMBA.
 
 ```swift
-func exclude(_ searchController: USIGNormalizadorController) -> String { return
-    nil
+func exclude(_ searchController: USIGNormalizadorController) -> String {
+    return nil
 }
 ```
 
