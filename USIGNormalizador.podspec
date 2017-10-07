@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
 
     spec.ios.deployment_target = '10.0'
 
-    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :branch => 'master' }
+    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.1.0' }
     spec.source_files = 'USIGNormalizador/*.{swift}'
 
     spec.frameworks = 'Foundation', 'UIKit'
