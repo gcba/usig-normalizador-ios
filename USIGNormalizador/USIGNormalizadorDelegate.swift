@@ -28,7 +28,7 @@ extension USIGNormalizadorControllerDelegate {
     public func pinImage(_ search: USIGNormalizadorController) -> UIImage! { return UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) }
     public func pinText(_ search: USIGNormalizadorController) -> String { return "Fijar la ubicación en el mapa" }
     public func shouldShowPin(_ search: USIGNormalizadorController) -> Bool { return false }
-    public func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool { return false }
+    public func shouldForceNormalization(_ search: USIGNormalizadorController) -> Bool { return true }
     public func didSelectPin(_ search: USIGNormalizadorController) {}
     public func didSelectUnnormalizedAddress(_ search: USIGNormalizadorController, value: String) {}
 }
