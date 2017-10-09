@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
     spec.name = 'USIGNormalizador'
-    spec.version = '0.1.1'
+    spec.version = '0.1.2'
     spec.summary = 'Cliente iOS del normalizador de direcciones de USIG'
     spec.homepage = 'https://github.com/gcba/usig-normalizador-ios'
 
@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
 
     spec.ios.deployment_target = '10.0'
 
-    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.1.1' }
+    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.1.2' }
     spec.source_files = 'USIGNormalizador/*.{swift}'
     spec.resources = ['USIGNormalizador/USIGNormalizador.storyboard', 'USIGNormalizadorResources/Assets.xcassets']
 
