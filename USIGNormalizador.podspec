@@ -11,6 +11,7 @@ Pod::Spec.new do |spec|
 
     spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.1.1' }
     spec.source_files = 'USIGNormalizador/*.{swift}'
+    spec.resources = ['USIGNormalizador/USIGNormalizador.storyboard', 'USIGNormalizadorResources/Assets.xcassets']
 
     spec.frameworks = 'Foundation', 'UIKit'
     spec.dependency 'RxCocoa', '~> 3.6'
