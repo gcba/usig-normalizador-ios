@@ -14,6 +14,8 @@ public struct USIGNormalizadorAddress {
     public let number: Int?
     public let type: String
     public let corner: String?
+    public let latitude: Double?
+    public let longitude: Double?
 }
 
 extension USIGNormalizadorAddress: Equatable {

@@ -51,12 +51,20 @@ public class USIGNormalizador {
             }
             
             for item in addresses {
+                let coordinates = item["coordenadas"] as? [String: Any]
+                let latitudeString = coordinates?["y"] as? String
+                let longitudeString = coordinates?["x"] as? String
+                let latitude = latitudeString != nil ? Double(latitudeString!) : nil
+                let longitude = longitudeString != nil ? Double(longitudeString!) : nil
+                
                 let address = USIGNormalizadorAddress(
-                    address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+                    address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
                     street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
                     number: item["altura"] as? Int,
                     type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                    corner: (item["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    corner: item["nombre_calle_cruce"] as? String,
+                    latitude: latitude,
+                    longitude: longitude
                 )
                 
                 result.append(address)
@@ -90,7 +98,9 @@ public class USIGNormalizador {
                 street: street.trimmingCharacters(in: .whitespacesAndNewlines),
                 number: nil,
                 type: type.trimmingCharacters(in: .whitespacesAndNewlines),
-                corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                latitude: latitude,
+                longitude: longitude
             )
             
             completion(result, nil)
