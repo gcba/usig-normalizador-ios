@@ -20,7 +20,7 @@ public enum USIGNormalizadorAPI {
 }
 
 extension USIGNormalizadorAPI: TargetType {
-    public var baseURL: URL { return URL(string: "https://servicios.usig.buenosaires.gob.ar")! }
+    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpoint)! }
 
     public var path: String {
         switch self {

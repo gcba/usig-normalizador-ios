@@ -14,9 +14,9 @@ import Moya
 import DZNEmptyDataSet
 
 fileprivate enum SearchState {
-    case NotFound
-    case Empty
-    case Error
+    case notFound
+    case empty
+    case error
 }
 
 public class USIGNormalizadorController: UIViewController {
@@ -31,31 +31,31 @@ public class USIGNormalizadorController: UIViewController {
     public var edit: String?
 
     fileprivate var exclusions: String {
-        return delegate?.exclude(self) ?? USIGNormalizadorExclusions.AMBA.rawValue
+        return delegate?.exclude(self) ?? USIGNormalizadorConfig.exclusionsDefault
     }
 
     fileprivate var maxResults: Int {
-        return delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : 10
+        return delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : USIGNormalizadorConfig.maxResultsDefault
     }
 
     fileprivate var showPin: Bool {
-        return delegate?.shouldShowPin(self) ?? false
+        return delegate?.shouldShowPin(self) ?? USIGNormalizadorConfig.shouldShowPinDefault
     }
 
     fileprivate var forceNormalization: Bool {
-        return delegate?.shouldForceNormalization(self) ?? false
+        return delegate?.shouldForceNormalization(self) ?? USIGNormalizadorConfig.shouldForceNormalizationDefault
     }
 
     fileprivate var pinColor: UIColor {
-        return delegate?.pinColor(self) ?? UIColor.darkGray
+        return delegate?.pinColor(self) ?? USIGNormalizadorConfig.pinColorDefault
     }
 
     fileprivate var pinImage: UIImage! {
-        return (delegate?.pinImage(self) ?? UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil))?.withRenderingMode(.alwaysTemplate)
+        return delegate?.pinImage(self) ?? USIGNormalizadorConfig.pinImageDefault?.withRenderingMode(.alwaysTemplate)
     }
 
     fileprivate var pinText: String {
-        return delegate?.pinText(self) ?? "Fijar la ubicación en el mapa"
+        return delegate?.pinText(self) ?? USIGNormalizadorConfig.pinTextDefault
     }
 
     fileprivate var rowsInFirstSection: Int {
@@ -71,7 +71,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     fileprivate var results: [USIGNormalizadorAddress] = []
-    fileprivate var state: SearchState = .Empty
+    fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
@@ -139,15 +139,13 @@ public class USIGNormalizadorController: UIViewController {
             .rx.text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
-            .flatMapLatest { [unowned self] query -> Observable<Any> in
-                return self.makeRequest(query!)
-            }
+            .flatMapLatest(makeRequest)
             .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
 
         _ = table
             .rx.itemSelected
-            .subscribe(onNext: self.handleSelectedItem)
+            .subscribe(onNext: handleSelectedItem)
     }
 
     private func setInitialValue() {
@@ -168,7 +166,7 @@ public class USIGNormalizadorController: UIViewController {
         if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
         else  {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
-            state = .Empty
+            state = .empty
             results = []
 
             reloadTable()
@@ -177,8 +175,10 @@ public class USIGNormalizadorController: UIViewController {
         }
     }
 
-    private func makeRequest(_ query: String) -> Observable<Any> {
-        let request = USIGNormalizadorAPI.normalizar(direccion: query.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
+    private func makeRequest(_ query: String?) -> Observable<Any> {
+        guard let text = query else { return Observable.empty() }
+        
+        let request = USIGNormalizadorAPI.normalizar(direccion: text.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
 
         searchController.searchBar.isLoading = true
 
@@ -200,10 +200,10 @@ public class USIGNormalizadorController: UIViewController {
 
         guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
             if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                state = .NotFound
+                state = .notFound
             }
             else {
-                state = .Error
+                state = .error
             }
 
             reloadTable()
@@ -268,7 +268,7 @@ public class USIGNormalizadorController: UIViewController {
         debugPrint(error)
 
         searchController.searchBar.isLoading = false
-        state = .Error
+        state = .error
     }
 
     private func handleSelectedItem(indexPath: IndexPath) {
@@ -383,11 +383,11 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
 
         switch state {
-        case .Empty:
+        case .empty:
             title = ""
-        case .NotFound:
+        case .notFound:
             title = "No Encontrado"
-        case .Error:
+        case .error:
             title = "Error"
         }
 
@@ -399,11 +399,11 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
         let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
 
         switch state {
-        case .Empty:
+        case .empty:
             description = ""
-        case .NotFound:
+        case .notFound:
             description = "La búsqueda no tuvo resultados."
-        case .Error:
+        case .error:
             description = "Asegurate de estar conectado a Internet."
         }
 

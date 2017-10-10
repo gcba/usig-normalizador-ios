@@ -22,13 +22,13 @@ public protocol USIGNormalizadorControllerDelegate {
 }
 
 extension USIGNormalizadorControllerDelegate {
-    public func exclude(_ searchController: USIGNormalizadorController) -> String { return USIGNormalizadorExclusions.AMBA.rawValue }
-    public func maxResults(_ searchController: USIGNormalizadorController) -> Int { return 10 }
-    public func pinColor(_ searchController: USIGNormalizadorController) -> UIColor { return UIColor.darkGray }
-    public func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! { return UIImage(named: "PinSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil) }
-    public func pinText(_ searchController: USIGNormalizadorController) -> String { return "Fijar la ubicación en el mapa" }
-    public func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return false }
-    public func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return true }
+    public func exclude(_ searchController: USIGNormalizadorController) -> String { return USIGNormalizadorConfig.exclusionsDefault }
+    public func maxResults(_ searchController: USIGNormalizadorController) -> Int { return USIGNormalizadorConfig.maxResultsDefault }
+    public func pinColor(_ searchController: USIGNormalizadorController) -> UIColor { return USIGNormalizadorConfig.pinColorDefault }
+    public func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! { return USIGNormalizadorConfig.pinImageDefault }
+    public func pinText(_ searchController: USIGNormalizadorController) -> String { return USIGNormalizadorConfig.pinTextDefault }
+    public func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldShowPinDefault }
+    public func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldForceNormalizationDefault }
     public func didSelectPin(_ searchController: USIGNormalizadorController) {}
     public func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String) {}
 }
