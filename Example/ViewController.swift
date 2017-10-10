@@ -69,7 +69,7 @@ class ViewController: UIViewController {
         guard CLLocationManager.authorizationStatus() == .authorizedWhenInUse, let currentLocation = locationManager.location else { return }
 
         USIGNormalizador.location(latitude: currentLocation.coordinate.latitude, longitude: currentLocation.coordinate.longitude) { result, error in
-            DispatchQueue.main.async { [unowned self] in
+            DispatchQueue.main.async {
                 self.geoLabel.text = result?.address ?? error?.message
             }
         }
@@ -83,19 +83,19 @@ extension ViewController: USIGNormalizadorControllerDelegate {
     func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress) {
         currentAddress = value
 
-        DispatchQueue.main.async { [unowned self] in
+        DispatchQueue.main.async {
             self.searchLabel.text = value.address
         }
     }
 
     func didSelectPin(_ searchController: USIGNormalizadorController) {
-        DispatchQueue.main.async { [unowned self] in
+        DispatchQueue.main.async {
             self.searchLabel.text = "PIN"
         }
     }
 
     func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String) {
-        DispatchQueue.main.async { [unowned self] in
+        DispatchQueue.main.async {
             self.searchLabel.text = value
         }
     }
