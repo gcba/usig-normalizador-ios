@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Moya
 
 public struct USIGNormalizadorAddress {
     public let address: String
