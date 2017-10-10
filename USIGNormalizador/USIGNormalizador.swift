@@ -25,6 +25,12 @@ public class USIGNormalizador {
             var result: [USIGNormalizadorAddress] = []
             let defaultError = "Error calling USIG API"
             
+            if let error = response.error, let errorMessage = error.errorDescription {
+                completion(nil, USIGNormalizadorError(errorMessage))
+                
+                return
+            }
+            
             guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any] else {
                 completion(nil, USIGNormalizadorError(defaultError))
                 
@@ -33,9 +39,9 @@ public class USIGNormalizador {
             
             guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
                 if let message = json?["errorMessage"] as? String {
-                    message.lowercased().contains("calle inexistente") ?
+                    (message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura")) ?
                         completion([], USIGNormalizadorError("Street not found")) :
-                        completion([], USIGNormalizadorError("\(defaultError): \(message)"))
+                        completion([], USIGNormalizadorError("\(message)"))
                 }
                 else {
                     completion(nil, USIGNormalizadorError(defaultError))
@@ -64,6 +70,12 @@ public class USIGNormalizador {
         let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: latitude, longitud: longitude)
         
         api.request(request) { response in
+            if let error = response.error, let errorMessage = error.errorDescription {
+                completion(nil, USIGNormalizadorError(errorMessage))
+                
+                return
+            }
+            
             guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any],
                 let address = json?["direccion"] as? String,
                 let street = json?["nombre_calle"] as? String,

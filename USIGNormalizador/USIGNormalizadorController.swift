@@ -138,9 +138,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.searchBar
             .rx.text
             .debounce(0.5, scheduler: MainScheduler.instance)
-            .filter { [unowned self] _ in
-                return self.filterSearch()
-            }
+            .filter(filterSearch)
             .flatMapLatest { [unowned self] query -> Observable<Any> in
                 return self.makeRequest(query!)
             }
@@ -166,8 +164,8 @@ public class USIGNormalizadorController: UIViewController {
         }
     }
 
-    private func filterSearch() -> Bool {
-        if let text = searchController.searchBar.text, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
+    private func filterSearch(_ value: String?) -> Bool {
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
         else  {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .Empty
