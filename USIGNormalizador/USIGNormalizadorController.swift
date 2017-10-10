@@ -436,7 +436,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
         let halfTableHeight = (scrollView as! UITableView).tableFooterView!.frame.size.height / 2
-        let halfKeyboardHeight = (keyboardHeight != nil && keyboardHeight! > CGFloat(0)) ? (keyboardHeight! / 2) : 0
+        let halfKeyboardHeight = keyboardHeight != nil ? (keyboardHeight! / 2) : 0
         let halfFirstSectionHeight = table.contentSize.height / 2
         
         return CGFloat(halfTableHeight - halfKeyboardHeight + halfFirstSectionHeight)
