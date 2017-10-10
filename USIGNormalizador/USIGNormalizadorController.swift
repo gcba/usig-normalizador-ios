@@ -369,6 +369,7 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
     }
 
     public func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        delegate?.didCancelSelection(self)
         close()
     }
 }

@@ -99,6 +99,12 @@ extension ViewController: USIGNormalizadorControllerDelegate {
             self.searchLabel.text = value
         }
     }
+    
+    func didCancelSelection(_ searchController: USIGNormalizadorController) {
+        DispatchQueue.main.async {
+            self.searchLabel.text = "CANCELADO"
+        }
+    }
 }
 
 extension ViewController: CLLocationManagerDelegate {
