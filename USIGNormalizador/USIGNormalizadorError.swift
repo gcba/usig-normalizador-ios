@@ -9,11 +9,10 @@
 import Foundation
 
 public enum USIGNormalizadorError: Error {
-    case notInRange(String, Int, HTTPURLResponse)
-    case jsonMapping(String, Int, HTTPURLResponse)
-    case streetNotFound(String, Int, HTTPURLResponse)
-    case service(String, Int, HTTPURLResponse)
-    case other(String, Int, HTTPURLResponse)
+    case notInRange(String, Int?, URLResponse?)
+    case streetNotFound(String, Int?, URLResponse?)
+    case service(String, Int?, URLResponse?)
+    case other(String, Int?, URLResponse?)
 }
 
 public extension USIGNormalizadorError {
@@ -26,7 +25,7 @@ public extension USIGNormalizadorError {
         }
     }
     
-    public var statusCode: String {
+    public var statusCode: Int? {
         switch self {
         case .notInRange(_, let status, _): return status
         case .streetNotFound(_, let status, _): return status
@@ -35,7 +34,7 @@ public extension USIGNormalizadorError {
         }
     }
     
-    public var response: String {
+    public var response: URLResponse? {
         switch self {
         case .notInRange(_, _, let res): return res
         case .streetNotFound(_, _, let res): return res
