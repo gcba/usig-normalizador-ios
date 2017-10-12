@@ -26,25 +26,28 @@ public class USIGNormalizador {
             let defaultError = "Error calling USIG API"
             
             if let error = response.error, let errorMessage = error.errorDescription {
-                completion(nil, USIGNormalizadorError(errorMessage))
+                completion(nil, USIGNormalizadorError.other(errorMessage, response.statusCode, response.response))
                 
                 return
             }
             
             guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any] else {
-                completion(nil, USIGNormalizadorError(defaultError))
+                completion(nil, USIGNormalizadorError.other(defaultError, response.statusCode, response.response))
                 
                 return
             }
             
             guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
                 if let message = json?["errorMessage"] as? String {
-                    (message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura")) ?
-                        completion([], USIGNormalizadorError("Street not found")) :
-                        completion([], USIGNormalizadorError("\(message)"))
+                    if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
+                        completion(nil, USIGNormalizadorError.streetNotFound("Street not found", response.statusCode, response.response))
+                    }
+                    else {
+                        completion(nil, USIGNormalizadorError.service("\(message)", response.statusCode, response.response))
+                    }
                 }
                 else {
-                    completion(nil, USIGNormalizadorError(defaultError))
+                    completion(nil, USIGNormalizadorError.other(defaultError, response.statusCode, response.response))
                 }
                 
                 return
@@ -79,7 +82,7 @@ public class USIGNormalizador {
         
         api.request(request) { response in
             if let error = response.error, let errorMessage = error.errorDescription {
-                completion(nil, USIGNormalizadorError(errorMessage))
+                completion(nil, USIGNormalizadorError.other(errorMessage, response.statusCode, response.response))
                 
                 return
             }
@@ -88,7 +91,7 @@ public class USIGNormalizador {
                 let address = json?["direccion"] as? String,
                 let street = json?["nombre_calle"] as? String,
                 let type = json?["tipo"] as? String else {
-                    completion(nil, USIGNormalizadorError("Location (\(latitude), \(longitude)) not in range"))
+                    completion(nil, USIGNormalizadorError.notInRange("Location (\(latitude), \(longitude)) not in range", response.statusCode, response.response))
                     
                     return
             }

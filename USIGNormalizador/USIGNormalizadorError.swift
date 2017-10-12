@@ -8,15 +8,39 @@
 
 import Foundation
 
-protocol USIGNormalizadorErrorType: Error {
-    var message: String { get }
+public enum USIGNormalizadorError: Error {
+    case notInRange(String, Int, HTTPURLResponse)
+    case jsonMapping(String, Int, HTTPURLResponse)
+    case streetNotFound(String, Int, HTTPURLResponse)
+    case service(String, Int, HTTPURLResponse)
+    case other(String, Int, HTTPURLResponse)
 }
 
-public struct USIGNormalizadorError: USIGNormalizadorErrorType {
-    private var _message: String
-    public var message: String { return _message }
+public extension USIGNormalizadorError {
+    public var message: String {
+        switch self {
+        case .notInRange(let description, _, _): return description
+        case .streetNotFound(let description, _, _): return description
+        case .service(let description, _, _): return description
+        case .other(let description, _, _): return description
+        }
+    }
     
-    init(_ message: String) {
-        _message = message
+    public var statusCode: String {
+        switch self {
+        case .notInRange(_, let status, _): return status
+        case .streetNotFound(_, let status, _): return status
+        case .service(_, let status, _): return status
+        case .other(_, let status, _): return status
+        }
+    }
+    
+    public var response: String {
+        switch self {
+        case .notInRange(_, _, let res): return res
+        case .streetNotFound(_, _, let res): return res
+        case .service(_, _, let res): return res
+        case .other(_, _, let res): return res
+        }
     }
 }
