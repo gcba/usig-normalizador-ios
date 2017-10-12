@@ -162,6 +162,16 @@ func didSelectPin(_ searchController: USIGNormalizadorController) {
 }
 ```
 
+#### didCancelSelection
+
+Si se tapeó el botón **Cancelar**.
+
+```swift
+func didCancelSelection(_ searchController: USIGNormalizadorController) {
+    // Do something
+}
+```
+
 #### exclude
 
 Localidades a excluir de la búsqueda, separadas por coma. El valor por defecto son las localidades del AMBA.

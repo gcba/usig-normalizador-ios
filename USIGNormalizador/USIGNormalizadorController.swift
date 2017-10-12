@@ -70,6 +70,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
+    fileprivate var keyboardHeight: CGFloat?
     fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
@@ -89,6 +90,8 @@ public class USIGNormalizadorController: UIViewController {
         setInitialValue()
 
         definesPresentationContext = true
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
     }
 
     override public func viewDidAppear(_ animated: Bool) {
@@ -150,6 +153,10 @@ public class USIGNormalizadorController: UIViewController {
 
     private func setInitialValue() {
         if let initialValue = edit {
+            if !forceNormalization {
+                hideForceNormalizationCell = false
+            }
+            
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
         }
     }
@@ -216,12 +223,20 @@ public class USIGNormalizadorController: UIViewController {
         var deleteRow = false
 
         for item in addresses {
+            let coordinates = item["coordenadas"] as? [String: Any]
+            let latitudeString = coordinates?["y"] as? String
+            let longitudeString = coordinates?["x"] as? String
+            let latitude = latitudeString != nil ? Double(latitudeString!) : nil
+            let longitude = longitudeString != nil ? Double(longitudeString!) : nil
+            
             let address = USIGNormalizadorAddress(
                 address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
                 street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
                 number: item["altura"] as? Int,
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
-                corner: item["nombre_calle_cruce"] as? String
+                corner: item["nombre_calle_cruce"] as? String,
+                latitude: latitude,
+                longitude: longitude
             )
 
             self.results.append(address)
@@ -307,10 +322,18 @@ public class USIGNormalizadorController: UIViewController {
 
         close(directly: false)
     }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
+            let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
+        
+        keyboardHeight = keyboardFrame.cgRectValue.height
+    }
 
     private func reloadTable() {
         DispatchQueue.main.async {
             self.table.reloadData()
+            self.table.reloadEmptyDataSet()
         }
     }
 
@@ -369,6 +392,7 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
     }
 
     public func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        delegate?.didCancelSelection(self)
         close()
     }
 }
@@ -411,7 +435,11 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
     }
 
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
-        return CGFloat(-((UIScreen.main.bounds.size.height - scrollView.frame.size.height) / 2))
+        let halfTableHeight = (scrollView as! UITableView).tableFooterView!.frame.size.height / 2
+        let halfKeyboardHeight = keyboardHeight != nil ? (keyboardHeight! / 2) : 0
+        let halfFirstSectionHeight = table.contentSize.height / 2
+        
+        return CGFloat(halfTableHeight - halfKeyboardHeight + halfFirstSectionHeight)
     }
 }
 

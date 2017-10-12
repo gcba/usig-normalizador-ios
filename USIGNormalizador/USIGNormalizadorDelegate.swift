@@ -19,6 +19,7 @@ public protocol USIGNormalizadorControllerDelegate {
     func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress)
     func didSelectPin(_ searchController: USIGNormalizadorController)
     func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String)
+    func didCancelSelection(_ searchController: USIGNormalizadorController)
 }
 
 extension USIGNormalizadorControllerDelegate {
@@ -31,4 +32,5 @@ extension USIGNormalizadorControllerDelegate {
     public func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldForceNormalizationDefault }
     public func didSelectPin(_ searchController: USIGNormalizadorController) {}
     public func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String) {}
+    public func didCancelSelection(_ searchController: USIGNormalizadorController) {}
 }
