@@ -21,7 +21,7 @@ pod 'USIGNormalizador', '~> 0.2'
 En el `Cartfile` del proyecto:
 
 ```
-github "gcba/USIGNormalizador" ~> 0.2
+github "gcba/usig-normalizador-ios" ~> 0.2
 ```
 
 ## Métodos
