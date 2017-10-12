@@ -13,7 +13,7 @@ Cliente iOS del [servicio de normalización de direcciones de USIG](http://servi
 En el `Podfile` del proyecto:
 
 ```ruby
-pod 'USIGNormalizador', '~> 0.1'
+pod 'USIGNormalizador', '~> 0.2'
 ```
 
 ### Carthage
@@ -21,7 +21,7 @@ pod 'USIGNormalizador', '~> 0.1'
 En el `Cartfile` del proyecto:
 
 ```
-github "gcba/USIGNormalizador" ~> 0.1
+github "gcba/USIGNormalizador" ~> 0.2
 ```
 
 ## Métodos
