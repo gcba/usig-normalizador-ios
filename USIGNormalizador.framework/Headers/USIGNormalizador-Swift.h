@@ -133,12 +133,54 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 #endif
 #if defined(__has_feature) && __has_feature(modules)
 @import UIKit;
+@import Foundation;
+@import DZNEmptyDataSet;
+@import CoreGraphics;
 #endif
 
 #pragma clang diagnostic ignored "-Wproperty-attribute-mismatch"
 #pragma clang diagnostic ignored "-Wduplicate-method-arg"
 
 @interface UISearchBar (SWIFT_EXTENSION(USIGNormalizador))
+@end
+
+@class NSBundle;
+@class NSCoder;
+
+SWIFT_CLASS("_TtC16USIGNormalizador26USIGNormalizadorController")
+@interface USIGNormalizadorController : UIViewController
+@property (nonatomic, copy) NSString * _Nullable edit;
+- (void)viewDidLoad;
+- (void)viewDidAppear:(BOOL)animated;
+- (nonnull instancetype)initWithNibName:(NSString * _Nullable)nibNameOrNil bundle:(NSBundle * _Nullable)nibBundleOrNil OBJC_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithCoder:(NSCoder * _Nonnull)aDecoder OBJC_DESIGNATED_INITIALIZER;
+@end
+
+@class UITableView;
+@class UITableViewCell;
+
+@interface USIGNormalizadorController (SWIFT_EXTENSION(USIGNormalizador)) <UITableViewDataSource, UITableViewDelegate>
+- (NSInteger)numberOfSectionsInTableView:(UITableView * _Nonnull)tableView SWIFT_WARN_UNUSED_RESULT;
+- (NSInteger)tableView:(UITableView * _Nonnull)tableView numberOfRowsInSection:(NSInteger)section SWIFT_WARN_UNUSED_RESULT;
+- (UITableViewCell * _Nonnull)tableView:(UITableView * _Nonnull)tableView cellForRowAtIndexPath:(NSIndexPath * _Nonnull)indexPath SWIFT_WARN_UNUSED_RESULT;
+@end
+
+@class UISearchController;
+
+@interface USIGNormalizadorController (SWIFT_EXTENSION(USIGNormalizador)) <UISearchControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating>
+- (void)updateSearchResultsForSearchController:(UISearchController * _Nonnull)searchController;
+- (void)didPresentSearchController:(UISearchController * _Nonnull)searchController;
+- (void)searchBarCancelButtonClicked:(UISearchBar * _Nonnull)searchBar;
+@end
+
+@class UIScrollView;
+@class NSAttributedString;
+
+@interface USIGNormalizadorController (SWIFT_EXTENSION(USIGNormalizador)) <DZNEmptyDataSetSource, DZNEmptyDataSetDelegate>
+- (BOOL)emptyDataSetShouldBeForcedToDisplay:(UIScrollView * _Null_unspecified)scrollView SWIFT_WARN_UNUSED_RESULT;
+- (NSAttributedString * _Nullable)titleForEmptyDataSet:(UIScrollView * _Nonnull)scrollView SWIFT_WARN_UNUSED_RESULT;
+- (NSAttributedString * _Nullable)descriptionForEmptyDataSet:(UIScrollView * _Nonnull)scrollView SWIFT_WARN_UNUSED_RESULT;
+- (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView * _Null_unspecified)scrollView SWIFT_WARN_UNUSED_RESULT;
 @end
 
 #pragma clang diagnostic pop
