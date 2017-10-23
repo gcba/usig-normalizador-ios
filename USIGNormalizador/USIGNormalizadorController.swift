@@ -338,16 +338,22 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     func close(directly: Bool = true) {
-        searchController.dismiss(animated: true, completion: { [unowned self] in
+        searchController.dismiss(animated: true) { [unowned self] in
             if !directly {
-                self.dismiss(animated: true) {
+                if self.navigationController?.viewControllers[0] === self {
+                    self.dismiss(animated: true) {
+                        self.onDismissCallback?(self)
+                    }
+                }
+                else {
                     self.onDismissCallback?(self)
+                    self.navigationController?.popViewController(animated: true)
                 }
             }
             else {
                 self.onDismissCallback?(self)
             }
-        })
+        }
     }
 }
 
