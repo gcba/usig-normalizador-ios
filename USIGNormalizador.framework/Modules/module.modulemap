@@ -7,4 +7,5 @@ framework module USIGNormalizador {
 
 module USIGNormalizador.Swift {
     header "USIGNormalizador-Swift.h"
+    requires objc
 }
