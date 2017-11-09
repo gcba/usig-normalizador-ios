@@ -222,6 +222,10 @@ func pinText(_ searchController: USIGNormalizadorController) -> String {
 }
 ```
 
+### Localización
+
+Para que el botón `Cancelar` aparezca en español, asegurarse que en el `info.plist` de la **app** la clave `Localization native development region` tenga el valor `es`.
+
 ## API
 
 `USIGNormalizador.api` expone un [Moya provider](https://github.com/Moya/Moya) para realizar llamadas directas al [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar).
