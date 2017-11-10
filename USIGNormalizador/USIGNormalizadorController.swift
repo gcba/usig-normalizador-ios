@@ -24,6 +24,7 @@ public class USIGNormalizadorController: UIViewController {
     // MARK: - Outlets
 
     @IBOutlet weak var table: UITableView!
+    @IBOutlet weak var tableBottomConstraint: NSLayoutConstraint!
 
     // MARK: - Properties
 
@@ -88,10 +89,9 @@ public class USIGNormalizadorController: UIViewController {
         setupTableView()
         setupRx()
         setInitialValue()
+        setKeyboardNotifications()
 
         definesPresentationContext = true
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
     }
 
     override public func viewDidAppear(_ animated: Bool) {
@@ -159,6 +159,12 @@ public class USIGNormalizadorController: UIViewController {
             
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
         }
+    }
+    
+    private func setKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
 
     // MARK: - Helper methods
@@ -327,7 +333,15 @@ public class USIGNormalizadorController: UIViewController {
         guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
             let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
         
-        keyboardHeight = keyboardFrame.cgRectValue.height
+        DispatchQueue.main.async {
+            self.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.tableBottomConstraint.constant = 0
+        }
     }
 
     private func reloadTable() {
@@ -442,10 +456,9 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
         let halfTableHeight = (scrollView as! UITableView).tableFooterView!.frame.size.height / 2
-        let halfKeyboardHeight = keyboardHeight != nil ? (keyboardHeight! / 2) : 0
         let halfFirstSectionHeight = table.contentSize.height / 2
         
-        return CGFloat(halfTableHeight - halfKeyboardHeight + halfFirstSectionHeight)
+        return CGFloat(halfTableHeight + halfFirstSectionHeight)
     }
 }
 
