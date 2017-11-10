@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
 
     spec.ios.deployment_target = '9.0'
 
-    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.2.6' }
+    spec.source = { :git => 'https://github.com/gcba/usig-normalizador-ios.git', :tag => 'v0.2.7' }
     spec.source_files = 'USIGNormalizador/*.{swift}'
     spec.resources = ['USIGNormalizador/USIGNormalizador.storyboard', 'USIGNormalizadorResources/Assets.xcassets']
 
