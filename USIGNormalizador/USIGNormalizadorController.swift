@@ -152,9 +152,9 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setInitialValue() {
-        if let initialValue = edit {
+        if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
             if !forceNormalization {
-                hideForceNormalizationCell = false
+                hideForceNormalizationCell = true
             }
             
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
@@ -326,7 +326,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
 
-        close(directly: false)
+        close()
     }
     
     @objc private func keyboardWillShow(_ notification: Notification) {
@@ -351,22 +351,21 @@ public class USIGNormalizadorController: UIViewController {
         }
     }
 
-    func close(directly: Bool = true) {
-        searchController.dismiss(animated: true) { [unowned self] in
-            if !directly {
-                if self.navigationController?.viewControllers[0] === self {
-                    self.dismiss(animated: true) {
-                        self.onDismissCallback?(self)
-                    }
-                }
-                else {
-                    self.onDismissCallback?(self)
-                    self.navigationController?.popViewController(animated: true)
-                }
-            }
-            else {
+    func close() {
+        if searchController.isFirstResponder {
+            searchController.dismiss(animated: true) { [unowned self] in
                 self.onDismissCallback?(self)
             }
+        }
+        
+        if self.navigationController?.viewControllers[0] === self {
+            self.dismiss(animated: true) { [unowned self] in
+                self.onDismissCallback?(self)
+            }
+        }
+        else {
+            self.onDismissCallback?(self)
+            self.navigationController?.popViewController(animated: true)
         }
     }
 }
