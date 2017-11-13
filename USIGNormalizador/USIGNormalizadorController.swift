@@ -352,14 +352,15 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     func close() {
-        if searchController.isFirstResponder {
+        if self.navigationController?.viewControllers[0] === self {
             searchController.dismiss(animated: true) { [unowned self] in
-                self.onDismissCallback?(self)
+                self.dismiss(animated: true) { [unowned self] in
+                    self.onDismissCallback?(self)
+                }
             }
         }
-        
-        if self.navigationController?.viewControllers[0] === self {
-            self.dismiss(animated: true) { [unowned self] in
+        else if searchController.isFirstResponder {
+            searchController.dismiss(animated: true) { [unowned self] in
                 self.onDismissCallback?(self)
             }
         }
