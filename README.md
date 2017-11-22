@@ -224,7 +224,7 @@ func pinText(_ searchController: USIGNormalizadorController) -> String {
 
 ### Localización
 
-Para que el botón `Cancelar` aparezca en español, asegurarse que en el `info.plist` de la **app** la clave `Localization native development region` tenga el valor `es`.
+Para que el botón `Cancelar` aparezca en español, asegurarse que en el `Info.plist` de la **app** la clave `Localization native development region` tenga el valor `es`.
 
 ## API
 
