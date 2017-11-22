@@ -176,7 +176,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 0 { return true }
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 { return true }
         else  {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
