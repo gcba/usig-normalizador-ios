@@ -71,7 +71,6 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
-    fileprivate var keyboardHeight: CGFloat?
     fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
@@ -153,10 +152,6 @@ public class USIGNormalizadorController: UIViewController {
 
     private func setInitialValue() {
         if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
-            if !forceNormalization {
-                hideForceNormalizationCell = true
-            }
-            
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
         }
     }
@@ -354,7 +349,7 @@ public class USIGNormalizadorController: UIViewController {
     func close() {
         if self.navigationController?.viewControllers[0] === self {
             searchController.dismiss(animated: true) { [unowned self] in
-                self.dismiss(animated: true) { [unowned self] in
+                self.dismiss(animated: true) {
                     self.onDismissCallback?(self)
                 }
             }
