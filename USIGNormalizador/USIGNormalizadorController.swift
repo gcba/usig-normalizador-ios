@@ -176,6 +176,7 @@ public class USIGNormalizadorController: UIViewController {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
+            hideForceNormalizationCell = true
 
             reloadTable()
 
