@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.10 - 27/11/2017
+
+### Fixed
+- Corner case table bug.
+
 ## v0.2.9 - 24/11/2017
 
 ### Added
