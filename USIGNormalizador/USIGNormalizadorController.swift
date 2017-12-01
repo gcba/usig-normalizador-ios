@@ -257,7 +257,7 @@ public class USIGNormalizadorController: UIViewController {
         }
 
         if !forceNormalization {
-            insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0))
+            insertRow = !isEqual && !deleteRow && shouldHaveRowsInFirstSection()
         }
 
         if insertRow || deleteRow {
@@ -269,10 +269,8 @@ public class USIGNormalizadorController: UIViewController {
                     self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
                 }
                 else {
-                    let row = self.rowsInFirstSection - 1
-
                     self.hideForceNormalizationCell = true
-                    self.table.deleteRows(at: [IndexPath(row: row, section: 0)], with: .automatic)
+                    self.table.deleteRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
                 }
             }
         }
@@ -323,6 +321,10 @@ public class USIGNormalizadorController: UIViewController {
         }
 
         close()
+    }
+    
+    private func shouldHaveRowsInFirstSection() -> Bool {
+        return showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell)
     }
     
     @objc private func keyboardWillShow(_ notification: Notification) {
