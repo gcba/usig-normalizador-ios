@@ -3,7 +3,7 @@
 ## v0.2.11 - 01/11/2017
 
 ### Fixed
-- Fixed search issue.
+- Search issue.
 
 ## v0.2.10 - 27/11/2017
 
