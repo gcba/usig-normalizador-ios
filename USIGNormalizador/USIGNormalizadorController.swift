@@ -71,12 +71,13 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
+    
     fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .empty
+    fileprivate var hideForceNormalizationCell: Bool = true
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
-    fileprivate var hideForceNormalizationCell: Bool = true
 
     // MARK: - Overrides
 
