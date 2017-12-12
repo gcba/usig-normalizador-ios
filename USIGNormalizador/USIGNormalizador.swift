@@ -67,7 +67,8 @@ public class USIGNormalizador {
                     type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
                     corner: item["nombre_calle_cruce"] as? String,
                     latitude: latitude,
-                    longitude: longitude
+                    longitude: longitude,
+                    districtCode: item["cod_partido"] as? String
                 )
                 
                 result.append(address)
@@ -103,7 +104,8 @@ public class USIGNormalizador {
                 type: type.trimmingCharacters(in: .whitespacesAndNewlines),
                 corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                 latitude: latitude,
-                longitude: longitude
+                longitude: longitude,
+                districtCode: json?["cod_partido"] as? String
             )
             
             completion(result, nil)

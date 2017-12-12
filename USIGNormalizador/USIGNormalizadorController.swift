@@ -237,7 +237,8 @@ public class USIGNormalizadorController: UIViewController {
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                 corner: item["nombre_calle_cruce"] as? String,
                 latitude: latitude,
-                longitude: longitude
+                longitude: longitude,
+                districtCode: item["cod_partido"] as? String
             )
 
             self.results.append(address)
