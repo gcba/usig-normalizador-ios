@@ -1,6 +1,16 @@
 # Changelog
 
-## v0.2.11 - 01/11/2017
+## v0.3.0 - 13/12/2017
+
+### Added
+- Search results now include the district code #1.
+- Test case.
+
+### Fixed
+- Coordinates bug in search results #1.
+- Missing default parameter.
+
+## v0.2.11 - 01/12/2017
 
 ### Fixed
 - Search issue.
