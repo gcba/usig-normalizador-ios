@@ -227,8 +227,6 @@ public class USIGNormalizadorController: UIViewController {
 
         for item in addresses {
             let coordinates = item["coordenadas"] as? [String: Any]
-            let latitude = parseCoordinate( fromCoodinatesDict: coordinates, coordinateKey: "y" )
-            let longitude = parseCoordinate( fromCoodinatesDict: coordinates, coordinateKey: "x" )
             
             let address = USIGNormalizadorAddress(
                 address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
@@ -236,8 +234,8 @@ public class USIGNormalizadorController: UIViewController {
                 number: item["altura"] as? Int,
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                 corner: item["nombre_calle_cruce"] as? String,
-                latitude: latitude,
-                longitude: longitude,
+                latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
+                longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
                 districtCode: item["cod_partido"] as? String
             )
 
@@ -277,16 +275,6 @@ public class USIGNormalizadorController: UIViewController {
         else {
             reloadTable()
         }
-    }
-
-    private func parseCoordinate( fromCoodinatesDict coordinatesDict: [ String: Any ]?, coordinateKey: String ) -> Double? {
-        guard let coordinatesDict = coordinatesDict else { return nil }
-
-        if let coordinateString = coordinatesDict [ coordinateKey ] as? String {
-            return Double( coordinateString )
-        }
-
-        return coordinatesDict [ coordinateKey ] as? Double
     }
 
     private func handleError(_ error: Swift.Error) {
