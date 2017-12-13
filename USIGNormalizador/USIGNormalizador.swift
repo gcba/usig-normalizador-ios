@@ -10,6 +10,9 @@ import Foundation
 import Moya
 
 public class USIGNormalizador {
+    
+    // MARK: - Public API
+    
     public static let api: MoyaProvider<USIGNormalizadorAPI> = MoyaProvider<USIGNormalizadorAPI>()
     
     public class func searchController() -> USIGNormalizadorController {
@@ -18,7 +21,8 @@ public class USIGNormalizador {
         return storyboard.instantiateViewController(withIdentifier: "USIGNormalizador") as! USIGNormalizadorController
     }
     
-    public class func search(query: String, excluding: String? = nil, maxResults: Int = 10, completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
+    public class func search(query: String, excluding: String? = USIGNormalizadorExclusions.AMBA.rawValue, maxResults: Int = 10,
+        completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
         let request = USIGNormalizadorAPI.normalizar(direccion: query, excluyendo: excluding, geocodificar: true, max: maxResults)
         
         api.request(request) { response in
@@ -55,10 +59,8 @@ public class USIGNormalizador {
             
             for item in addresses {
                 let coordinates = item["coordenadas"] as? [String: Any]
-                let latitudeString = coordinates?["y"] as? String
-                let longitudeString = coordinates?["x"] as? String
-                let latitude = latitudeString != nil ? Double(latitudeString!) : nil
-                let longitude = longitudeString != nil ? Double(longitudeString!) : nil
+                let latitude = USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y")
+                let longitude = USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x")
                 
                 let address = USIGNormalizadorAddress(
                     address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
@@ -110,5 +112,17 @@ public class USIGNormalizador {
             
             completion(result, nil)
         }
+    }
+    
+    // MARK: - Utilities
+    
+    class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
+        guard let coordinatesDict = dict else { return nil }
+        
+        if let coordinateString = coordinatesDict[key] as? String {
+            return Double(coordinateString)
+        }
+        
+        return coordinatesDict[key] as? Double
     }
 }
