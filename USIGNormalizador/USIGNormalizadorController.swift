@@ -227,10 +227,8 @@ public class USIGNormalizadorController: UIViewController {
 
         for item in addresses {
             let coordinates = item["coordenadas"] as? [String: Any]
-            let latitudeString = coordinates?["y"] as? String
-            let longitudeString = coordinates?["x"] as? String
-            let latitude = latitudeString != nil ? Double(latitudeString!) : nil
-            let longitude = longitudeString != nil ? Double(longitudeString!) : nil
+            let latitude = parseCoordinate( fromCoodinatesDict: coordinates, coordinateKey: "y" )
+            let longitude = parseCoordinate( fromCoodinatesDict: coordinates, coordinateKey: "x" )
             
             let address = USIGNormalizadorAddress(
                 address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
@@ -239,7 +237,8 @@ public class USIGNormalizadorController: UIViewController {
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                 corner: item["nombre_calle_cruce"] as? String,
                 latitude: latitude,
-                longitude: longitude
+                longitude: longitude,
+                districtCode: item["cod_partido"] as? String
             )
 
             self.results.append(address)
@@ -278,6 +277,16 @@ public class USIGNormalizadorController: UIViewController {
         else {
             reloadTable()
         }
+    }
+
+    private func parseCoordinate( fromCoodinatesDict coordinatesDict: [ String: Any ]?, coordinateKey: String ) -> Double? {
+        guard let coordinatesDict = coordinatesDict else { return nil }
+
+        if let coordinateString = coordinatesDict [ coordinateKey ] as? String {
+            return Double( coordinateString )
+        }
+
+        return coordinatesDict [ coordinateKey ] as? Double
     }
 
     private func handleError(_ error: Swift.Error) {
