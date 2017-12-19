@@ -23,3 +23,15 @@ extension USIGNormalizadorAddress: Equatable {
         return lhs.address == rhs.address && lhs.type == rhs.type
     }
 }
+
+extension USIGNormalizadorAddress: CustomStringConvertible {
+    public var description: String {
+        return "Address: \(address), " +
+            "Street: \(street), " +
+            "Number: \(String(describing: number)), " +
+            "Type: \(type), " +
+            "Corner: \(String(describing: corner)), " +
+            "Latitude: \(String(describing: latitude)), " +
+            "Longitude: \(String(describing: longitude))"
+    }
+}
