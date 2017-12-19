@@ -40,10 +40,11 @@ extension USIGNormalizadorAPI: TargetType {
 					"direccion": direccion,
 					"geocodificar": geocodificar ? "true" : "false",
 					"maxOptions": max,
-					"exclude": excluyendo ?? ""
+					"exclude": excluyendo ?? "",
+					"tipoResultado": "calle_altura_calle_y_calle"
 				]
         case .normalizarCoordenadas(let latitud, let longitud):
-            return ["lat": latitud, "lng": longitud]
+            return ["lat": latitud, "lng": longitud, "tipoResultado": "calle_altura_calle_y_calle"]
         }
     }
 
