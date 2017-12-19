@@ -227,10 +227,6 @@ public class USIGNormalizadorController: UIViewController {
 
         for item in addresses {
             let coordinates = item["coordenadas"] as? [String: Any]
-            let latitudeString = coordinates?["y"] as? String
-            let longitudeString = coordinates?["x"] as? String
-            let latitude = latitudeString != nil ? Double(latitudeString!) : nil
-            let longitude = longitudeString != nil ? Double(longitudeString!) : nil
             
             let address = USIGNormalizadorAddress(
                 address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
@@ -238,8 +234,9 @@ public class USIGNormalizadorController: UIViewController {
                 number: item["altura"] as? Int,
                 type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
                 corner: item["nombre_calle_cruce"] as? String,
-                latitude: latitude,
-                longitude: longitude
+                latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
+                longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
+                districtCode: item["cod_partido"] as? String
             )
 
             self.results.append(address)

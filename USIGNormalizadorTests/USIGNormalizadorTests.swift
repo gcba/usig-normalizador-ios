@@ -29,6 +29,8 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result![0].address == "CALLAO AV., CABA, CABA")
             XCTAssert(result![0].street == "CALLAO AV.")
             XCTAssert(result![0].type == "calle")
+            XCTAssert(result![0].districtCode != nil)
+            XCTAssert(result![0].districtCode == "caba")
             
             expect.fulfill()
         }
@@ -52,6 +54,38 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result![0].address == "CALLAO AV., CABA, CABA")
             XCTAssert(result![0].street == "CALLAO AV.")
             XCTAssert(result![0].type == "calle")
+            XCTAssert(result![0].districtCode != nil)
+            XCTAssert(result![0].districtCode == "caba")
+            
+            expect.fulfill()
+        }
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testSearchWithNumber() {
+        let expect = expectation(description: "Se busca una calle y altura específicas y se obtiene un resultado")
+        let timeout = 5.0
+        
+        USIGNormalizador.search(query: "CALLAO AV. 123") { result, error in
+            XCTAssert(error == nil)
+            XCTAssert(result != nil)
+            XCTAssert(result!.count == 1)
+            XCTAssert(result![0].address == "CALLAO AV. 123, CABA")
+            XCTAssert(result![0].street == "CALLAO AV.")
+            XCTAssert(result![0].type == "calle_altura")
+            XCTAssert(result![0].number != nil)
+            XCTAssert(result![0].number == 123)
+            XCTAssert(result![0].latitude != nil)
+            XCTAssert(result![0].latitude == -34.607595)
+            XCTAssert(result![0].longitude != nil)
+            XCTAssert(result![0].longitude == -58.391966)
+            XCTAssert(result![0].districtCode != nil)
+            XCTAssert(result![0].districtCode == "caba")
             
             expect.fulfill()
         }
@@ -75,6 +109,10 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result!.type == "calle_y_calle")
             XCTAssert(result!.corner != nil)
             XCTAssert(result!.corner! == "PI Y MARGALL")
+            XCTAssert(result!.latitude != nil)
+            XCTAssert(result!.longitude != nil)
+            XCTAssert(result!.districtCode != nil)
+            XCTAssert(result!.districtCode == "caba")
             
             expect.fulfill()
         }
