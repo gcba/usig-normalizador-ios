@@ -67,10 +67,10 @@ public class USIGNormalizador {
                     street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
                     number: item["altura"] as? Int,
                     type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                    corner: item["nombre_calle_cruce"] as? String,
+                    corner: (item["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                     latitude: latitude,
                     longitude: longitude,
-                    districtCode: item["cod_partido"] as? String
+                    districtCode: (item["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
                 )
                 
                 result.append(address)
@@ -102,12 +102,12 @@ public class USIGNormalizador {
             let result = USIGNormalizadorAddress(
                 address: address.trimmingCharacters(in: .whitespacesAndNewlines),
                 street: street.trimmingCharacters(in: .whitespacesAndNewlines),
-                number: nil,
+                number: json?["altura"] as? Int,
                 type: type.trimmingCharacters(in: .whitespacesAndNewlines),
                 corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                 latitude: latitude,
                 longitude: longitude,
-                districtCode: json?["cod_partido"] as? String
+                districtCode: (json?["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
             
             completion(result, nil)
