@@ -38,12 +38,14 @@ extension USIGNormalizadorAPI: TargetType {
     public var parameters: [String: Any]? {
         switch self {
         case .normalizar(let direccion, let excluyendo, let geocodificar, let max):
-            return [
-                "direccion": direccion,
-                "geocodificar": geocodificar ? "true" : "false",
-                "maxOptions": max,
-                "exclude": excluyendo ?? ""
-            ]
+            var params: [String: Any] = [:]
+            
+            params["direccion"] = direccion
+            params["geocodificar"] = geocodificar ? "true" : "false"
+            params["maxOptions"] = max
+            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added
+
+            return params
         case .normalizarCoordenadas(let latitud, let longitud):
             return ["lat": latitud, "lng": longitud]
         }
@@ -71,7 +73,7 @@ extension USIGNormalizadorAPI: TargetType {
 public enum USIGEpokAPI {
     case getCategorias()
     case getObjectContent(id: String)
-    case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Float]?, start: Int?, limit: Int?, total: Bool?)
+    case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Double]?, start: Int?, limit: Int?, total: Bool?)
     case reverseGeocoderLugares(categorias: [String], latitud: Double, longitud: Double, srid: Int?, radio: Int?)
 }
 
@@ -105,10 +107,10 @@ extension USIGEpokAPI: TargetType {
             params["texto"] = texto
             params["categoria"] = categoria
             params["clase"] = clase
-            params["bbox"] = boundingBox
+            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { String($0) }.joined(separator: ",") : nil
             params["start"] = start
             params["limit"] = limit
-            params["totalFull"] = total
+            params["totalFull"] = total != nil ? (total! ? "true" : "false") : nil
             
             return params
         case .reverseGeocoderLugares(let categorias, let latitud, let longitud, let srid, let radio):
