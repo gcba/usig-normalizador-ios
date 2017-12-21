@@ -43,7 +43,7 @@ extension USIGNormalizadorAPI: TargetType {
             params["direccion"] = direccion
             params["geocodificar"] = geocodificar ? "true" : "false"
             params["maxOptions"] = max
-            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added
+            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added at all
 
             return params
         case .normalizarCoordenadas(let latitud, let longitud):
@@ -82,7 +82,7 @@ extension USIGEpokAPI: TargetType {
     
     public var path: String {
         switch self {
-        case .getCategorias():
+        case .getCategorias:
             return "/getCategorias"
         case .getObjectContent(_):
             return "/getObjectContent"
@@ -97,7 +97,7 @@ extension USIGEpokAPI: TargetType {
     
     public var parameters: [String: Any]? {
         switch self {
-        case .getCategorias():
+        case .getCategorias:
             return nil
         case .getObjectContent(let id):
             return ["id": id]
