@@ -22,7 +22,7 @@ public enum USIGNormalizadorExclusions: String {
 }
 
 extension USIGNormalizadorAPI: TargetType {
-    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpoint)! }
+    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpointNormalizador)! }
     
     public var path: String {
         switch self {
@@ -71,8 +71,63 @@ extension USIGNormalizadorAPI: TargetType {
 public enum USIGEpokAPI {
     case getCategorias()
     case getObjectContent(id: String)
-    case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Float]?, start: Int?, limit: Int?, totalFull: Bool?)
+    case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Float]?, start: Int?, limit: Int?, total: Bool?)
     case reverseGeocoderLugares(categorias: [String], latitud: Double, longitud: Double, srid: Int?, radio: Int?)
+}
+
+extension USIGEpokAPI: TargetType {
+    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpointEpok)! }
+    
+    public var path: String {
+        switch self {
+        case .getCategorias():
+            return "/getCategorias"
+        case .getObjectContent(_):
+            return "/getObjectContent"
+        case .buscar(_, _, _, _, _, _, _):
+            return "/buscar"
+        case .reverseGeocoderLugares(_, _, _, _, _):
+            return "/reverseGeocoderLugares"
+        }
+    }
+
+    public var method: Moya.Method { return .get }
+    
+    public var parameters: [String: Any]? {
+        switch self {
+        case .getCategorias():
+            return nil
+        case .getObjectContent(let id):
+            return ["id": id]
+        case .buscar(let texto, let categoria, let clase, let boundingBox, let start, let limit, let total):
+            var params: [String: Any] = [:]
+            
+            params["texto"] = texto
+            params["categoria"] = categoria
+            params["clase"] = clase
+            params["bbox"] = boundingBox
+            params["start"] = start
+            params["limit"] = limit
+            params["totalFull"] = total
+            
+            return params
+        case .reverseGeocoderLugares(let categorias, let latitud, let longitud, let srid, let radio):
+            var params: [String: Any] = [:]
+            
+            params["categorias"] = categorias.joined(separator: ",")
+            params["y"] = latitud
+            params["x"] = longitud
+            params["srid"] = srid
+            params["radio"] = radio
+            
+            return params
+        }
+    }
+    
+    public var sampleData: Data { return Data() }
+    
+    public var task: Task { return .request }
+    public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
 
 
