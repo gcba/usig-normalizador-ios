@@ -83,13 +83,13 @@ extension USIGEpokAPI: TargetType {
     public var path: String {
         switch self {
         case .getCategorias:
-            return "/getCategorias"
+            return "/getCategorias/"
         case .getObjectContent(_):
-            return "/getObjectContent"
+            return "/getObjectContent/"
         case .buscar(_, _, _, _, _, _, _):
-            return "/buscar"
+            return "/buscar/"
         case .reverseGeocoderLugares(_, _, _, _, _):
-            return "/reverseGeocoderLugares"
+            return "/reverseGeocoderLugares/"
         }
     }
 
