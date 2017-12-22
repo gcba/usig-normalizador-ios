@@ -19,9 +19,10 @@ class USIGNormalizadorTests: XCTestCase {
         super.tearDown()
     }
     
+    let timeout: TimeInterval = 5.0
+    
     func testNormalizadorSearch() {
         let expect = expectation(description: "Se busca una calle y se obtiene una lista de resultados")
-        let timeout = 5.0
         
         USIGNormalizador.search(query: "Call") { result, error in
             XCTAssert(error == nil)
@@ -38,7 +39,7 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
             }
         }
     }
@@ -46,7 +47,6 @@ class USIGNormalizadorTests: XCTestCase {
     func testNormalizadorSearchWithMax() {
         let max = 5
         let expect = expectation(description: "Se busca una calle y se obtiene una lista de no más de \(max) resultados")
-        let timeout = 5.0
         
         USIGNormalizador.search(query: "Call", maxResults: max) { result, error in
             XCTAssert(error == nil)
@@ -63,14 +63,13 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
             }
         }
     }
     
     func testNormalizadorSearchWithNumber() {
         let expect = expectation(description: "Se busca una calle y altura específicas y se obtiene un resultado")
-        let timeout = 5.0
         
         USIGNormalizador.search(query: "CALLAO AV. 123") { result, error in
             XCTAssert(error == nil)
@@ -93,14 +92,13 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
             }
         }
     }
     
     func testNormalizadorLocation() {
         let expect = expectation(description: "Se obtiene la localización en base a un par de coordenadas")
-        let timeout = 5.0
         
         USIGNormalizador.location(latitude: -34.627847, longitude: -58.365986) { result, error in
             XCTAssert(error == nil)
@@ -120,7 +118,7 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar obtener la localización: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar obtener la localización: \(error.localizedDescription)")
             }
         }
     }
@@ -129,7 +127,6 @@ class USIGNormalizadorTests: XCTestCase {
         let request = USIGEpokAPI.buscar(texto: "aeroparque", categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: nil, total: nil)
         let api = MoyaProvider<USIGEpokAPI>()
         let expect = expectation(description: "Se obtienen los detalles de un lugar")
-        let timeout = 5.0
         
         api.request(request, completion: { response in
             XCTAssert(response.error == nil)
@@ -155,10 +152,9 @@ class USIGNormalizadorTests: XCTestCase {
             expect.fulfill()
         })
         
-        
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
             }
         }
     }
@@ -168,7 +164,6 @@ class USIGNormalizadorTests: XCTestCase {
         let request = USIGEpokAPI.buscar(texto: "aeroparque", categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: limit, total: nil)
         let api = MoyaProvider<USIGEpokAPI>()
         let expect = expectation(description: "Se buscan los detalles de un lugar y se obtiene una lista de \(limit) resultados")
-        let timeout = 5.0
         
         api.request(request, completion: { response in
             XCTAssert(response.error == nil)
@@ -196,7 +191,7 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
             }
         }
     }
@@ -205,8 +200,7 @@ class USIGNormalizadorTests: XCTestCase {
         let limit = 2
         let request = USIGEpokAPI.buscar(texto: "aeroparque", categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: limit, total: true)
         let api = MoyaProvider<USIGEpokAPI>()
-        let expect = expectation(description: "Se buscan los detalles de un lugar y se obtiene una lista de \(limit) resultados teniendo en cuenta el total")
-        let timeout = 5.0
+        let expect = expectation(description: "Se buscan los detalles de un lugar y se obtiene una lista de \(limit) resultados y el total encontrado")
         
         api.request(request, completion: { response in
             XCTAssert(response.error == nil)
@@ -234,7 +228,55 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testEpokApiGetObjectContent() {
+        let request = USIGEpokAPI.getObjectContent(id: "terminales|9")
+        let api = MoyaProvider<USIGEpokAPI>()
+        let expect = expectation(description: "Se obtienen los detalles de un lugar")
+        
+        api.request(request, completion: { response in
+            XCTAssert(response.error == nil)
+            XCTAssert(response.value != nil)
+            
+            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
+                let direccionNormalizada = json?["direccionNormalizada"] as? String,
+                let contenido = json?["contenido"] as? Array<[String: String]>,
+                let fuente = json?["fuente"] as? String,
+                let claseId = json?["claseId"] as? String,
+                let clase = json?["clase"] as? String,
+                let fechaAlta = json?["fechaAlta"] as? String,
+                let fechaActualizacion = json?["fechaActualizacion"] as? String,
+                let idForaneo = json?["idForaneo"] as? String,
+                let fechaUltimaModificacion = json?["fechaUltimaModificacion"] as? String,
+                let ubicacion = json?["ubicacion"] as? [String: String],
+                let id = json?["id"] as? String else {
+                    XCTFail("Error al parsear la respuesta de la API de lugares")
+                    
+                    return
+            }
+            
+            XCTAssert(direccionNormalizada == "ANTARTIDA ARGENTINA AV. 1250")
+            XCTAssert(contenido.count > 0)
+            XCTAssert(!fuente.isEmpty)
+            XCTAssert(claseId == "terminales")
+            XCTAssert(clase == "Terminales")
+            XCTAssert(!fechaAlta.isEmpty)
+            XCTAssert(!fechaActualizacion.isEmpty)
+            XCTAssert(!idForaneo.isEmpty)
+            XCTAssert(!fechaUltimaModificacion.isEmpty)
+            XCTAssert(!ubicacion.isEmpty)
+            XCTAssert(id == "terminales|9")
+            
+            expect.fulfill()
+        })
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
             }
         }
     }
