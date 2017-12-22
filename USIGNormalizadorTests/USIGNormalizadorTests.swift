@@ -130,7 +130,6 @@ class USIGNormalizadorTests: XCTestCase {
         let api = MoyaProvider<USIGEpokAPI>()
         let expect = expectation(description: "Se obtienen los detalles de un lugar")
         let timeout = 5.0
-        let parseError = "Error al parsear la respuesta de la API de lugares"
         
         api.request(request, completion: { response in
             XCTAssert(response.error == nil)
@@ -143,7 +142,7 @@ class USIGNormalizadorTests: XCTestCase {
                 let limitString = json?["total"] as? String,
                 let total = Int(totalString),
                 let limit = Int(limitString) else {
-                XCTFail(parseError)
+                XCTFail("Error al parsear la respuesta de la API de lugares")
                     
                 return
             }
@@ -156,6 +155,82 @@ class USIGNormalizadorTests: XCTestCase {
             expect.fulfill()
         })
         
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testEpokApiSearchWithLimit() {
+        let limit = 2
+        let request = USIGEpokAPI.buscar(texto: "aeroparque", categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: limit, total: nil)
+        let api = MoyaProvider<USIGEpokAPI>()
+        let expect = expectation(description: "Se buscan los detalles de un lugar y se obtiene una lista de \(limit) resultados")
+        let timeout = 5.0
+        
+        api.request(request, completion: { response in
+            XCTAssert(response.error == nil)
+            XCTAssert(response.value != nil)
+            
+            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
+                let totalString = json?["totalFull"] as? String,
+                let clases = json?["clasesEncontradas"] as? Array<[String: String]>,
+                let instancias = json?["instancias"] as? Array<[String: String]>,
+                let limitString = json?["total"] as? String,
+                let total = Int(totalString),
+                let limit = Int(limitString) else {
+                    XCTFail("Error al parsear la respuesta de la API de lugares")
+                    
+                    return
+            }
+            
+            XCTAssert(total == limit)
+            XCTAssert(clases.count == limit)
+            XCTAssert(instancias.count == limit)
+            XCTAssert(limit == limit)
+            
+            expect.fulfill()
+        })
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(timeout)) al intentar buscar un lugar: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testEpokApiSearchWithLimitAndTotal() {
+        let limit = 2
+        let request = USIGEpokAPI.buscar(texto: "aeroparque", categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: limit, total: true)
+        let api = MoyaProvider<USIGEpokAPI>()
+        let expect = expectation(description: "Se buscan los detalles de un lugar y se obtiene una lista de \(limit) resultados teniendo en cuenta el total")
+        let timeout = 5.0
+        
+        api.request(request, completion: { response in
+            XCTAssert(response.error == nil)
+            XCTAssert(response.value != nil)
+            
+            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
+                let totalString = json?["totalFull"] as? String,
+                let clases = json?["clasesEncontradas"] as? Array<[String: String]>,
+                let instancias = json?["instancias"] as? Array<[String: String]>,
+                let limitString = json?["total"] as? String,
+                let total = Int(totalString),
+                let limit = Int(limitString) else {
+                    XCTFail("Error al parsear la respuesta de la API de lugares")
+                    
+                    return
+            }
+            
+            XCTAssert(total > limit)
+            XCTAssert(clases.count > limit)
+            XCTAssert(instancias.count == limit)
+            XCTAssert(limit == limit)
+            
+            expect.fulfill()
+        })
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
