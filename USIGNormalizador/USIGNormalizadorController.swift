@@ -219,7 +219,7 @@ public class USIGNormalizadorController: UIViewController {
         return provider
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn(["Error": true])
+            .catchErrorJustReturn([])
     }
 
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
