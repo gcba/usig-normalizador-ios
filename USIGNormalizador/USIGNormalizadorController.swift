@@ -82,7 +82,8 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     fileprivate var value: USIGNormalizadorAddress?
-    fileprivate var provider: RxMoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var normalizationProvider: RxMoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var epokProvider: RxMoyaProvider<USIGEpokAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     
@@ -143,21 +144,33 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setupRx() {
-        let requestClosure = { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            var request: URLRequest = endpoint.urlRequest!
-
-            request.cachePolicy = .returnCacheDataElseLoad
-
+        let requestClosure = { (request: URLRequest, done: RxMoyaProvider.RequestResultClosure) in
+            var mutableRequest = request
+            
+            mutableRequest.cachePolicy = .returnCacheDataElseLoad
+            
             done(.success(request))
         }
+        
+        // Swift does not allow generic closures
 
-        provider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: requestClosure)
+        normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
+            let request: URLRequest = endpoint.urlRequest!
+            
+            requestClosure(request, done)
+        })
+        
+        epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
+            let request: URLRequest = endpoint.urlRequest!
+            
+            requestClosure(request, done)
+        })
 
         searchController.searchBar
             .rx.text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
-            .flatMapLatest(makeRequest)
+            .flatMapLatest(makeNormalizationRequest)
             .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
 
@@ -199,18 +212,38 @@ public class USIGNormalizadorController: UIViewController {
             return false
         }
     }
-
-    private func makeRequest(_ query: String?) -> Observable<Any> {
-        guard let text = query else { return Observable.empty() }
-        
-        let request = USIGNormalizadorAPI.normalizar(direccion: text.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
-
+    
+    private func makeRequest<API>(request: API, provider: RxMoyaProvider<API>) -> Observable<Any> {
         searchController.searchBar.isLoading = true
-
+        
         return provider
             .request(request)
             .mapJSON()
             .catchErrorJustReturn(["Error": true])
+    }
+
+    private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
+        guard let text = query else { return Observable.empty() }
+        
+        let request = USIGEpokAPI.buscar(texto: text, categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: 3, total: nil)
+        
+        return makeRequest(request: request, provider: epokProvider)
+    }
+    
+    private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
+        guard let id = object else { return Observable.empty() }
+        
+        let request = USIGEpokAPI.getObjectContent(id: id)
+        
+        return makeRequest(request: request, provider: epokProvider)
+    }
+    
+    private func makeNormalizationRequest(_ query: String?) -> Observable<Any> {
+        guard let text = query else { return Observable.empty() }
+        
+        let request = USIGNormalizadorAPI.normalizar(direccion: text.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
+        
+        return makeRequest(request: request, provider: normalizationProvider)
     }
 
     private func handleResults(_ results: Any) {

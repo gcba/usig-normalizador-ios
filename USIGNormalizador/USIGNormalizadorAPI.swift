@@ -127,7 +127,6 @@ extension USIGEpokAPI: TargetType {
     }
     
     public var sampleData: Data { return Data() }
-    
     public var task: Task { return .request }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
