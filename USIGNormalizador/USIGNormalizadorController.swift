@@ -13,17 +13,17 @@ import RxCocoa
 import Moya
 import DZNEmptyDataSet
 
-private protocol RankerType {
-    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress]
-}
-
-private class DefaultRanker: RankerType {
-    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] { return addresses }
-}
-
-private class PlacesFirst: RankerType {
-    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
-        return addresses
+fileprivate enum Ranker {
+    case placesFirst
+    case placesLast
+    
+    func rank(addresses: [USIGNormalizadorAddress], places: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
+        switch self {
+        case .placesFirst:
+            return places + addresses
+        case .placesLast:
+            return addresses + places
+        }
     }
 }
 
@@ -93,7 +93,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
-    fileprivate let ranker: RankerType = DefaultRanker()
+    fileprivate let ranker: Ranker = .placesFirst
 
     // MARK: - Overrides
 
@@ -252,7 +252,9 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func makeRequest<API>(request: API, provider: RxMoyaProvider<API>) -> Observable<Any> {
-        searchController.searchBar.isLoading = true
+        if !searchController.searchBar.isLoading {
+            searchController.searchBar.isLoading = true
+        }
 
         return provider
             .request(request)
@@ -285,12 +287,11 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func handleResults(_ results: Any) {
-        var unrankedResults: [USIGNormalizadorAddress] = []
-
         self.results = []
         searchController.searchBar.isLoading = false
 
-        guard let json = results as? [String: Any], let error = json["error"] as? Bool, error else {
+        guard let json = results as? [String: Any], json["error"] == nil else {
+            debugPrint("ERROR: Could not contact USIG service")
             reloadTable()
 
             return
@@ -309,11 +310,7 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
 
-        for item in addresses {
-            unrankedResults.append(USIGNormalizador.getAddress(item))
-        }
-
-        self.results = self.ranker.rank(unrankedResults)
+        self.results = USIGNormalizador.getAddresses(addresses)
 
         self.handleFirstSection()
     }

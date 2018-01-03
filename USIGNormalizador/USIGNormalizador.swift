@@ -116,6 +116,16 @@ public class USIGNormalizador {
         )
     }
     
+    internal class func getAddresses(_ json: Array<[String: Any]>) -> [USIGNormalizadorAddress] {
+        var result: [USIGNormalizadorAddress] = []
+        
+        for item in json {
+            result.append(USIGNormalizador.getAddress(item))
+        }
+        
+        return result
+    }
+    
     internal class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
         guard let coordinatesDict = dict else { return nil }
         
