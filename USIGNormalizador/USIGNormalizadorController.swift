@@ -166,7 +166,7 @@ public class USIGNormalizadorController: UIViewController {
                 
                 return true
             }
-            .flatMap { [unowned self] results -> Observable<Any> in
+            .flatMap { results -> Observable<String> in
                 guard let json = results as? [String: Any], let instances = json["instancias"] as? Array<[String: String]> else {
                     return Observable.empty()
                 }
@@ -179,7 +179,10 @@ public class USIGNormalizadorController: UIViewController {
                     }
                 }
                 
-                return Observable.from(optional: self.makeEpokGetObjectContentRequests(ids))
+                return Observable.from(ids)
+            }
+            .flatMap { [unowned self] id -> Observable<Any> in
+                return self.makeEpokGetObjectContentRequest(id)
             }
             .flatMap { [unowned self] result -> Observable<Any> in
                 guard let json = result as? [String: Any], let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty else {
@@ -264,18 +267,12 @@ public class USIGNormalizadorController: UIViewController {
         return makeRequest(request: request, provider: epokProvider)
     }
     
-    private func makeEpokGetObjectContentRequests(_ objects: [String]?) -> [Observable<Any>] {
-        guard let ids = objects else { return [] }
+    private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
+        guard let id = object else { return Observable.empty() }
         
-        var requests: [Observable<Any>] = []
+        let request = USIGEpokAPI.getObjectContent(id: id)
         
-        for id in ids {
-            let request = makeRequest(request: USIGEpokAPI.getObjectContent(id: id), provider: epokProvider)
-            
-            requests.append(request)
-        }
-        
-        return requests
+        return makeRequest(request: request, provider: epokProvider)
     }
     
     private func makeNormalizationRequest(_ query: String?) -> Observable<Any> {
