@@ -152,6 +152,43 @@ public class USIGNormalizadorController: UIViewController {
             done(.success(request))
         }
         
+        let searchStream = searchController.searchBar.rx
+            .text
+            .debounce(0.5, scheduler: MainScheduler.instance)
+            .filter(filterSearch)
+        
+        let epokStream = searchStream
+            .flatMapLatest(makeEpokSearchRequest)
+            .filter {value -> Bool in
+                if let dict = value as? [String: Any], let error = dict["error"] as? Bool, error {
+                    return false
+                }
+                
+                return true
+            }
+            .flatMap { [unowned self] results -> Observable<Any> in
+                guard let json = results as? [String: Any], let instances = json["instancias"] as? Array<[String: String]> else {
+                    return Observable.empty()
+                }
+                
+                var ids: [String] = []
+                
+                for item in instances {
+                    if let id = item["id"] {
+                        ids.append(id)
+                    }
+                }
+                
+                return Observable.from(optional: self.makeEpokGetObjectContentRequests(ids))
+            }
+            .flatMap { [unowned self] result -> Observable<Any> in
+                guard let json = result as? [String: Any], let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty else {
+                    return Observable.empty()
+                }
+                
+                return self.makeNormalizationRequest(normalizedAddress)
+        }
+        
         // Swift does not allow generic closures
 
         normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
@@ -166,17 +203,14 @@ public class USIGNormalizadorController: UIViewController {
             requestClosure(request, done)
         })
 
-        searchController.searchBar
-            .rx.text
-            .debounce(0.5, scheduler: MainScheduler.instance)
-            .filter(filterSearch)
+        _ = table.rx
+            .itemSelected
+            .subscribe(onNext: handleSelectedItem)
+        
+        searchStream
             .flatMapLatest(makeNormalizationRequest)
             .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
-
-        _ = table
-            .rx.itemSelected
-            .subscribe(onNext: handleSelectedItem)
     }
 
     private func setInitialValue() {
@@ -219,7 +253,7 @@ public class USIGNormalizadorController: UIViewController {
         return provider
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn([])
+            .catchErrorJustReturn(["error": true])
     }
 
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
@@ -230,12 +264,18 @@ public class USIGNormalizadorController: UIViewController {
         return makeRequest(request: request, provider: epokProvider)
     }
     
-    private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
-        guard let id = object else { return Observable.empty() }
+    private func makeEpokGetObjectContentRequests(_ objects: [String]?) -> [Observable<Any>] {
+        guard let ids = objects else { return [] }
         
-        let request = USIGEpokAPI.getObjectContent(id: id)
+        var requests: [Observable<Any>] = []
         
-        return makeRequest(request: request, provider: epokProvider)
+        for id in ids {
+            let request = makeRequest(request: USIGEpokAPI.getObjectContent(id: id), provider: epokProvider)
+            
+            requests.append(request)
+        }
+        
+        return requests
     }
     
     private func makeNormalizationRequest(_ query: String?) -> Observable<Any> {
@@ -271,10 +311,6 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
 
-        var isEqual = false
-        var insertRow = false
-        var deleteRow = false
-
         for item in addresses {
             let coordinates = item["coordenadas"] as? [String: Any]
             
@@ -290,43 +326,11 @@ public class USIGNormalizadorController: UIViewController {
             )
 
             unrankedResults.append(address)
-
-            if !forceNormalization {
-                let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
-
-                if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                    isEqual = true
-
-                    if showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1) {
-                        deleteRow = !hideForceNormalizationCell
-                    }
-                }
-            }
         }
         
         self.results = self.ranker.rank(unrankedResults)
-
-        if !forceNormalization {
-            insertRow = !isEqual && !deleteRow && shouldHaveRowsInFirstSection()
-        }
-
-        if insertRow || deleteRow {
-            DispatchQueue.main.async { [unowned self] in
-                self.table.reloadSections(IndexSet(integer: 1), with: .none)
-
-                if insertRow {
-                    self.hideForceNormalizationCell = false
-                    self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
-                }
-                else {
-                    self.hideForceNormalizationCell = true
-                    self.table.deleteRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
-                }
-            }
-        }
-        else {
-            reloadTable()
-        }
+        
+        self.handleFirstSection()
     }
 
     private func handleError(_ error: Swift.Error) {
@@ -373,8 +377,46 @@ public class USIGNormalizadorController: UIViewController {
         close()
     }
     
-    private func shouldHaveRowsInFirstSection() -> Bool {
-        return showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell)
+    private func handleFirstSection() {
+        var isEqual = false
+        var insertRow = false
+        var deleteRow = false
+        
+        for address in results {
+            if !forceNormalization {
+                let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
+                
+                if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
+                    isEqual = true
+                    
+                    if showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1) {
+                        deleteRow = !hideForceNormalizationCell
+                    }
+                }
+            }
+        }
+        
+        if !forceNormalization {
+            insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell))
+        }
+        
+        if insertRow || deleteRow {
+            DispatchQueue.main.async { [unowned self] in
+                self.table.reloadSections(IndexSet(integer: 1), with: .none)
+                
+                if insertRow {
+                    self.hideForceNormalizationCell = false
+                    self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
+                }
+                else {
+                    self.hideForceNormalizationCell = true
+                    self.table.deleteRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
+                }
+            }
+        }
+        else {
+            reloadTable()
+        }
     }
     
     @objc private func keyboardWillShow(_ notification: Notification) {
