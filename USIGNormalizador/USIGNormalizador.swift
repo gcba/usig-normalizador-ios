@@ -58,22 +58,7 @@ public class USIGNormalizador {
             }
             
             for item in addresses {
-                let coordinates = item["coordenadas"] as? [String: Any]
-                let latitude = USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y")
-                let longitude = USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x")
-                
-                let address = USIGNormalizadorAddress(
-                    address: (item["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
-                    street: (item["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                    number: item["altura"] as? Int,
-                    type: (item["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-                    corner: item["nombre_calle_cruce"] as? String,
-                    latitude: latitude,
-                    longitude: longitude,
-                    districtCode: item["cod_partido"] as? String
-                )
-                
-                result.append(address)
+                result.append(USIGNormalizador.getAddress(item))
             }
             
             completion(result, nil)
@@ -107,7 +92,7 @@ public class USIGNormalizador {
                 corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                 latitude: latitude,
                 longitude: longitude,
-                districtCode: json?["cod_partido"] as? String
+                districtCode: (json?["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             )
             
             completion(result, nil)
@@ -116,7 +101,22 @@ public class USIGNormalizador {
     
     // MARK: - Utilities
     
-    class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
+    internal class func getAddress(_ json: [String: Any]) -> USIGNormalizadorAddress {
+        let coordinates = json["coordenadas"] as? [String: Any]
+        
+        return USIGNormalizadorAddress(
+            address: (json["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
+            street: (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+            number: json["altura"] as? Int,
+            type: (json["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
+            corner: (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+            latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
+            longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
+            districtCode: (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+    }
+    
+    internal class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
         guard let coordinatesDict = dict else { return nil }
         
         if let coordinateString = coordinatesDict[key] as? String {

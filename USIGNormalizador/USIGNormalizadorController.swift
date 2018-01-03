@@ -21,7 +21,7 @@ private class DefaultRanker: RankerType {
     func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] { return addresses }
 }
 
-private class EpokRanker: RankerType {
+private class PlacesFirst: RankerType {
     func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
         return addresses
     }
@@ -86,7 +86,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var epokProvider: RxMoyaProvider<USIGEpokAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
-    
+
     fileprivate var results: [USIGNormalizadorAddress] = []
     fileprivate var state: SearchState = .empty
     fileprivate var hideForceNormalizationCell: Bool = true
@@ -94,7 +94,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
     fileprivate let ranker: RankerType = DefaultRanker()
-    
+
     // MARK: - Overrides
 
     override public func viewDidLoad() {
@@ -146,70 +146,71 @@ public class USIGNormalizadorController: UIViewController {
     private func setupRx() {
         let requestClosure = { (request: URLRequest, done: RxMoyaProvider.RequestResultClosure) in
             var mutableRequest = request
-            
+
             mutableRequest.cachePolicy = .returnCacheDataElseLoad
-            
+
             done(.success(request))
         }
-        
+
         let searchStream = searchController.searchBar.rx
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
-        
+
         let epokStream = searchStream
             .flatMapLatest(makeEpokSearchRequest)
             .filter {value -> Bool in
                 if let dict = value as? [String: Any], let error = dict["error"] as? Bool, error {
                     return false
                 }
-                
+
                 return true
             }
-            .flatMap { results -> Observable<String> in
-                guard let json = results as? [String: Any], let instances = json["instancias"] as? Array<[String: String]> else {
+            .flatMap { result -> Observable<String> in
+                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]> else {
                     return Observable.empty()
                 }
-                
+
                 var ids: [String] = []
-                
+
                 for item in instances {
                     if let id = item["id"] {
                         ids.append(id)
                     }
                 }
-                
+
                 return Observable.from(ids)
             }
-            .flatMap { [unowned self] id -> Observable<Any> in
-                return self.makeEpokGetObjectContentRequest(id)
-            }
+            .flatMap(makeEpokGetObjectContentRequest)
             .flatMap { [unowned self] result -> Observable<Any> in
                 guard let json = result as? [String: Any], let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty else {
                     return Observable.empty()
                 }
-                
+
                 return self.makeNormalizationRequest(normalizedAddress)
         }
-        
+
+        let normalizationStream = searchStream.flatMapLatest(makeNormalizationRequest)
+
         // Swift does not allow generic closures
 
         normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
             let request: URLRequest = endpoint.urlRequest!
-            
+
             requestClosure(request, done)
         })
-        
+
         epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
             let request: URLRequest = endpoint.urlRequest!
-            
+
             requestClosure(request, done)
         })
 
         _ = table.rx
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
-        
+
+
         searchStream
             .flatMapLatest(makeNormalizationRequest)
             .subscribe(onNext: handleResults, onError: handleError)
@@ -221,7 +222,7 @@ public class USIGNormalizadorController: UIViewController {
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
         }
     }
-    
+
     private func setKeyboardNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
@@ -249,10 +250,10 @@ public class USIGNormalizadorController: UIViewController {
             return false
         }
     }
-    
+
     private func makeRequest<API>(request: API, provider: RxMoyaProvider<API>) -> Observable<Any> {
         searchController.searchBar.isLoading = true
-        
+
         return provider
             .request(request)
             .mapJSON()
@@ -261,35 +262,35 @@ public class USIGNormalizadorController: UIViewController {
 
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
         guard let text = query else { return Observable.empty() }
-        
+
         let request = USIGEpokAPI.buscar(texto: text, categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: 3, total: nil)
-        
+
         return makeRequest(request: request, provider: epokProvider)
     }
-    
+
     private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
         guard let id = object else { return Observable.empty() }
-        
+
         let request = USIGEpokAPI.getObjectContent(id: id)
-        
+
         return makeRequest(request: request, provider: epokProvider)
     }
-    
+
     private func makeNormalizationRequest(_ query: String?) -> Observable<Any> {
         guard let text = query else { return Observable.empty() }
-        
+
         let request = USIGNormalizadorAPI.normalizar(direccion: text.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
-        
+
         return makeRequest(request: request, provider: normalizationProvider)
     }
 
     private func handleResults(_ results: Any) {
         var unrankedResults: [USIGNormalizadorAddress] = []
-        
+
         self.results = []
         searchController.searchBar.isLoading = false
 
-        guard let json = results as? [String: Any] else {
+        guard let json = results as? [String: Any], let error = json["error"] as? Bool, error else {
             reloadTable()
 
             return
@@ -309,24 +310,11 @@ public class USIGNormalizadorController: UIViewController {
         }
 
         for item in addresses {
-            let coordinates = item["coordenadas"] as? [String: Any]
-            
-            let address = USIGNormalizadorAddress(
-                address: (item["direccion"] as! String).trimmingCharacters(in: whitespace).uppercased(),
-                street: (item["nombre_calle"] as! String).trimmingCharacters(in: whitespace),
-                number: item["altura"] as? Int,
-                type: (item["tipo"] as! String).trimmingCharacters(in: whitespace),
-                corner: item["nombre_calle_cruce"] as? String,
-                latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
-                longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
-                districtCode: item["cod_partido"] as? String
-            )
-
-            unrankedResults.append(address)
+            unrankedResults.append(USIGNormalizador.getAddress(item))
         }
-        
+
         self.results = self.ranker.rank(unrankedResults)
-        
+
         self.handleFirstSection()
     }
 
@@ -335,6 +323,8 @@ public class USIGNormalizadorController: UIViewController {
 
         searchController.searchBar.isLoading = false
         state = .error
+
+        reloadTable()
     }
 
     private func handleSelectedItem(indexPath: IndexPath) {
@@ -373,34 +363,34 @@ public class USIGNormalizadorController: UIViewController {
 
         close()
     }
-    
+
     private func handleFirstSection() {
         var isEqual = false
         var insertRow = false
         var deleteRow = false
-        
+
         for address in results {
             if !forceNormalization {
                 let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
-                
+
                 if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
                     isEqual = true
-                    
+
                     if showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1) {
                         deleteRow = !hideForceNormalizationCell
                     }
                 }
             }
         }
-        
+
         if !forceNormalization {
             insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell))
         }
-        
+
         if insertRow || deleteRow {
             DispatchQueue.main.async { [unowned self] in
                 self.table.reloadSections(IndexSet(integer: 1), with: .none)
-                
+
                 if insertRow {
                     self.hideForceNormalizationCell = false
                     self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
@@ -415,16 +405,16 @@ public class USIGNormalizadorController: UIViewController {
             reloadTable()
         }
     }
-    
+
     @objc private func keyboardWillShow(_ notification: Notification) {
         guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
             let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
-        
+
         DispatchQueue.main.async {
             self.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
         }
     }
-    
+
     @objc private func keyboardWillHide(_ notification: Notification) {
         DispatchQueue.main.async {
             self.tableBottomConstraint.constant = 0
@@ -544,7 +534,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
         let halfTableHeight = (scrollView as! UITableView).tableFooterView!.frame.size.height / 2
         let halfFirstSectionHeight = table.contentSize.height / 2
-        
+
         return CGFloat(halfTableHeight + halfFirstSectionHeight)
     }
 }
