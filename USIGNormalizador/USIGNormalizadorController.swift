@@ -13,6 +13,20 @@ import RxCocoa
 import Moya
 import DZNEmptyDataSet
 
+private protocol RankerType {
+    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress]
+}
+
+private class DefaultRanker: RankerType {
+    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] { return addresses }
+}
+
+private class EpokRanker: RankerType {
+    func rank(_ addresses: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
+        return addresses
+    }
+}
+
 fileprivate enum SearchState {
     case notFound
     case empty
@@ -78,7 +92,8 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
-
+    fileprivate let ranker: RankerType = DefaultRanker()
+    
     // MARK: - Overrides
 
     override public func viewDidLoad() {
@@ -199,6 +214,8 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func handleResults(_ results: Any) {
+        var unrankedResults: [USIGNormalizadorAddress] = []
+        
         self.results = []
         searchController.searchBar.isLoading = false
 
@@ -239,7 +256,7 @@ public class USIGNormalizadorController: UIViewController {
                 districtCode: item["cod_partido"] as? String
             )
 
-            self.results.append(address)
+            unrankedResults.append(address)
 
             if !forceNormalization {
                 let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
@@ -253,6 +270,8 @@ public class USIGNormalizadorController: UIViewController {
                 }
             }
         }
+        
+        self.results = self.ranker.rank(unrankedResults)
 
         if !forceNormalization {
             insertRow = !isEqual && !deleteRow && shouldHaveRowsInFirstSection()
