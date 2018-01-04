@@ -17,12 +17,21 @@ fileprivate enum Ranker {
     case placesFirst
     case placesLast
     
-    func rank(addresses: [USIGNormalizadorAddress], places: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
+    func rank(addresses: [USIGNormalizadorAddress], in list: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
         switch self {
         case .placesFirst:
-            return places + addresses
+            return list + addresses
         case .placesLast:
-            return addresses + places
+            return addresses + list
+        }
+    }
+    
+    func rank(places: [USIGNormalizadorAddress], in list: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
+        switch self {
+        case .placesFirst:
+            return places + list
+        case .placesLast:
+            return list + places
         }
     }
 }
@@ -139,8 +148,6 @@ public class USIGNormalizadorController: UIViewController {
         table.tableFooterView = UIView(frame: .zero)
         table.emptyDataSetSource = self
         table.emptyDataSetDelegate = self
-
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
     }
 
     private func setupRx() {
@@ -156,65 +163,113 @@ public class USIGNormalizadorController: UIViewController {
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
-
+        
+        let normalizationStream = searchStream
+            .flatMapLatest(makeNormalizationRequest)
+            .filter(filterNormalizationResults)
+        
         let epokStream = searchStream
             .flatMapLatest(makeEpokSearchRequest)
-            .filter {value -> Bool in
-                if let dict = value as? [String: Any], let error = dict["error"] as? Bool, error {
-                    return false
-                }
-
-                return true
-            }
-            .flatMap { result -> Observable<String> in
-                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]> else {
-                    return Observable.empty()
-                }
-
-                var ids: [String] = []
-
+            .flatMap { [unowned self] result -> Observable<[Any]> in
+                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, instances.count > 0 else { return Observable.empty() }
+                
+                var requests: [Observable<Any>] = []
+                
                 for item in instances {
                     if let id = item["id"] {
-                        ids.append(id)
+                        requests.append(self.makeEpokGetObjectContentRequest(id))
                     }
                 }
-
-                return Observable.from(ids)
+                
+                return Observable.from(requests).merge().toArray()
             }
-            .flatMap(makeEpokGetObjectContentRequest)
-            .flatMap { [unowned self] result -> Observable<Any> in
-                guard let json = result as? [String: Any], let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty else {
-                    return Observable.empty()
+            .flatMap { [unowned self] result -> Observable<[[String: Any]]> in
+                guard let jsonArray = result as? [[String: Any]] else { return Observable.empty() }
+                
+                var requests: [Observable<Any>] = []
+                var dataMatrix: [[String: Any]] = []
+                var index = 0;
+                
+                for json in jsonArray {
+                    if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty {
+                        requests.append(self.makeNormalizationRequest(normalizedAddress))
+                    }
                 }
-
-                return self.makeNormalizationRequest(normalizedAddress)
+               
+                return Observable.from(requests)
+                    .merge()
+                    .toArray()
+                    .filter(self.filterNormalizationResults)
+                    .scan(dataMatrix, accumulator: { (matrix, item) -> [[String: Any]] in
+                        guard jsonArray.count > 0, jsonArray.count > index else { return dataMatrix }
+                        
+                        let addresses = item as! [[String: Any]]
+                        var place = jsonArray[index]
+                        var filteredAddresses: [[String: Any]] = []
+                        
+                        for address in addresses {
+                            if address["error"] == nil,
+                            var normalizedAddresses = address["direccionesNormalizadas"] as? [[String: Any]],
+                            let content = jsonArray[index]["contenido"] as? [[String: Any]] {
+                                var name: String?
+                                
+                                for item in content {
+                                    if let nameId = item["nombreId"] as? String, nameId == "nombre", let value = item["valor"] as? String {
+                                        name = value
+                                    }
+                                }
+                                
+                                for (itemIndex, _) in normalizedAddresses.enumerated() {
+                                    normalizedAddresses[itemIndex]["label"] = name
+                                }
+                                
+                                filteredAddresses = filteredAddresses + normalizedAddresses
+                            }
+                        }
+                        
+                        place["direccionesNormalizadas"] = filteredAddresses
+                        index += 1
+                
+                        dataMatrix.append(place)
+                        
+                        return dataMatrix
+                    })
         }
-
-        let normalizationStream = searchStream.flatMapLatest(makeNormalizationRequest)
-
+        
         // Swift does not allow generic closures
 
         normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            let request: URLRequest = endpoint.urlRequest!
-
-            requestClosure(request, done)
+            requestClosure(endpoint.urlRequest!, done)
         })
 
         epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            let request: URLRequest = endpoint.urlRequest!
-
-            requestClosure(request, done)
+            requestClosure(endpoint.urlRequest!, done)
         })
 
         _ = table.rx
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
+        
+        epokStream.subscribe(onNext: handleEpokResults, onError: handleError)
+            .addDisposableTo(disposeBag)
+        
+        
+        /*
+        normalizationStream
+            .subscribe(onNext: { [unowned self] results in
+                let addresses = self.getAddresses(results)
+                
+                self.handleResults(results, addressList: addresses)
+            }, onError: handleError)
+            .addDisposableTo(disposeBag)
+ */
 
-
+        /*
         searchStream
             .flatMapLatest(makeNormalizationRequest)
             .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
+ */
     }
 
     private func setInitialValue() {
@@ -249,6 +304,16 @@ public class USIGNormalizadorController: UIViewController {
 
             return false
         }
+    }
+    
+    private func filterNormalizationResults(_ value: Any) -> Bool {
+        if let dict = value as? [String: Any],
+            let error = dict["error"] as? Bool, error,
+            (dict["direccionesNormalizadas"] as? [[String: Any]] == nil || (dict["direccionesNormalizadas"] as! [[String: Any]]).count == 0) {
+            return false
+        }
+        
+        return true
     }
 
     private func makeRequest<API>(request: API, provider: RxMoyaProvider<API>) -> Observable<Any> {
@@ -285,8 +350,50 @@ public class USIGNormalizadorController: UIViewController {
 
         return makeRequest(request: request, provider: normalizationProvider)
     }
+    
+    private func getAddresses(_ results: Any) -> [USIGNormalizadorAddress] {
+        guard let json = results as? [String: Any], json["error"] == nil, let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+            return []
+        }
+        
+        return USIGNormalizador.getAddresses(addresses)
+    }
+    
+    private func handleNormalizationResults(_ results: Any, addressList: [USIGNormalizadorAddress]) {
+        guard let json = results as? [String: Any], json["error"] == nil else {
+            debugPrint("ERROR: Could not contact USIG service")
+            reloadTable()
+            
+            return
+        }
+        
+        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+            if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
+                state = .notFound
+            }
+            else {
+                state = .error
+            }
+            
+            reloadTable()
+            
+            return
+        }
+        
+        self.results = self.ranker.rank(addresses: getAddresses(addresses), in: self.results)
+        
+        self.handleFirstSection()
+    }
+    
+    private func handleEpokResults(_ results: Any) {
+        guard let response = results as? [[String: Any]], response.count > 0, let addressesJsonArray = response[0]["direccionesNormalizadas"] as? [[String: Any]] else { return }
+        
+        self.results = self.ranker.rank(places: USIGNormalizador.getAddresses(addressesJsonArray), in: self.results)
+        
+        self.handleFirstSection()
+    }
 
-    private func handleResults(_ results: Any) {
+    private func handleResults(_ results: Any, addressList: [USIGNormalizadorAddress]) {
         self.results = []
         searchController.searchBar.isLoading = false
 
@@ -310,17 +417,16 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
 
-        self.results = USIGNormalizador.getAddresses(addresses)
+        self.results = addressList
 
         self.handleFirstSection()
     }
 
     private func handleError(_ error: Swift.Error) {
-        debugPrint(error)
-
         searchController.searchBar.isLoading = false
         state = .error
 
+        debugPrint(error)
         reloadTable()
     }
 
@@ -453,10 +559,19 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-
+        
         if indexPath.section == 1 {
+            let address = results[indexPath.row].address.replacingOccurrences(of: addressSufix, with: "")
+            
+            if let label = results[indexPath.row].label {
+                cell.textLabel?.text = label
+                cell.detailTextLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text, fontSize: 12)
+            } else {
+                cell.textLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text)
+                cell.detailTextLabel?.attributedText = nil
+            }
+            
             cell.imageView?.image = nil
-            cell.textLabel?.attributedText = results[indexPath.row].address.replacingOccurrences(of: addressSufix, with: "").highlight(searchController.searchBar.textField?.text)
         }
         else if showPin && indexPath.row == 0 {
             let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
@@ -537,9 +652,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 }
 
 private extension String {
-    func highlight(range boldRange: NSRange) -> NSAttributedString {
-        let fontSize = UIFont.systemFontSize
-
+    func highlight(range boldRange: NSRange, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
         let bold = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: fontSize)]
         let nonBold = [NSFontAttributeName: UIFont.systemFont(ofSize: fontSize)]
         let attributedString = NSMutableAttributedString(string: self, attributes: nonBold)
@@ -549,7 +662,7 @@ private extension String {
         return attributedString
     }
 
-    func highlight(_ text: String?) -> NSAttributedString {
+    func highlight(_ text: String?, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
         let haystack = self.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
         guard let substring = text, let range = haystack.range(of: substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
@@ -560,7 +673,7 @@ private extension String {
         let lower16 = range.lowerBound.samePosition(in: haystack.utf16)
         let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
 
-        return highlight(range: NSRange(location: start, length: needle.characters.count))
+        return highlight(range: NSRange(location: start, length: needle.characters.count), fontSize: fontSize)
     }
 }
 

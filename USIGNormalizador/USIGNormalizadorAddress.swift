@@ -17,6 +17,7 @@ public struct USIGNormalizadorAddress {
     public let latitude: Double?
     public let longitude: Double?
     public let districtCode: String?
+    public let label: String?
 }
 
 extension USIGNormalizadorAddress: Equatable {

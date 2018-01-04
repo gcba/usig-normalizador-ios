@@ -92,7 +92,8 @@ public class USIGNormalizador {
                 corner: (json?["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
                 latitude: latitude,
                 longitude: longitude,
-                districtCode: (json?["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                districtCode: (json?["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                label: json?["label"] as? String
             )
             
             completion(result, nil)
@@ -112,7 +113,8 @@ public class USIGNormalizador {
             corner: (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
             latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
             longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
-            districtCode: (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            districtCode: (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+            label: json["label"] as? String
         )
     }
     
