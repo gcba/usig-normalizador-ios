@@ -165,10 +165,12 @@ public class USIGNormalizadorController: UIViewController {
             .filter(filterSearch)
         
         let normalizationStream = searchStream
+            .observeOn(ConcurrentMainScheduler.instance)
             .flatMapLatest(makeNormalizationRequest)
             .filter(filterNormalizationResults)
         
         let epokStream = searchStream
+            .observeOn(ConcurrentMainScheduler.instance)
             .flatMapLatest(makeEpokSearchRequest)
             .flatMap { [unowned self] result -> Observable<[Any]> in
                 guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, instances.count > 0 else { return Observable.empty() }
