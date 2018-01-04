@@ -210,8 +210,7 @@ public class USIGNormalizadorController: UIViewController {
                         var filteredAddresses: [[String: Any]] = []
                         
                         for address in addresses {
-                            if address["error"] == nil,
-                            var normalizedAddresses = address["direccionesNormalizadas"] as? [[String: Any]],
+                            if var normalizedAddresses = address["direccionesNormalizadas"] as? [[String: Any]],
                             let content = jsonArray[index]["contenido"] as? [[String: Any]] {
                                 var name: String?
                                 
@@ -310,7 +309,6 @@ public class USIGNormalizadorController: UIViewController {
     
     private func filterNormalizationResults(_ value: Any) -> Bool {
         if let dict = value as? [String: Any],
-            let error = dict["error"] as? Bool, error,
             (dict["direccionesNormalizadas"] as? [[String: Any]] == nil || (dict["direccionesNormalizadas"] as! [[String: Any]]).count == 0) {
             return false
         }
@@ -325,8 +323,7 @@ public class USIGNormalizadorController: UIViewController {
 
         return provider
             .request(request)
-            .mapJSON()
-            .catchErrorJustReturn(["error": true])
+            .mapJSON().catchError { _ in Observable.never() }
     }
 
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
@@ -354,7 +351,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func getAddresses(_ results: Any) -> [USIGNormalizadorAddress] {
-        guard let json = results as? [String: Any], json["error"] == nil, let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+        guard let json = results as? [String: Any], let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
             return []
         }
         
@@ -362,7 +359,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func handleNormalizationResults(_ results: Any, addressList: [USIGNormalizadorAddress]) {
-        guard let json = results as? [String: Any], json["error"] == nil else {
+        guard let json = results as? [String: Any] else {
             debugPrint("ERROR: Could not contact USIG service")
             reloadTable()
             
@@ -399,7 +396,7 @@ public class USIGNormalizadorController: UIViewController {
         self.results = []
         searchController.searchBar.isLoading = false
 
-        guard let json = results as? [String: Any], json["error"] == nil else {
+        guard let json = results as? [String: Any] else {
             debugPrint("ERROR: Could not contact USIG service")
             reloadTable()
 
