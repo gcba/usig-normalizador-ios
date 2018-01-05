@@ -167,7 +167,7 @@ public class USIGNormalizadorController: UIViewController {
         let normalizationStream = searchStream
             .observeOn(ConcurrentMainScheduler.instance)
             .flatMapLatest(makeNormalizationRequest)
-            .filter(filterNormalizationResults)
+            .flatMap { [unowned self] item in Observable.from(optional: self.getResponse(item)) }
         
         let epokStream = searchStream
             .observeOn(ConcurrentMainScheduler.instance)
@@ -185,12 +185,11 @@ public class USIGNormalizadorController: UIViewController {
                 
                 return Observable.from(requests).merge().toArray()
             }
-            .flatMap { [unowned self] result -> Observable<[[String: Any]]> in
+            .flatMap { [unowned self] result -> Observable<USIGNormalizadorResponse> in
                 guard let jsonArray = result as? [[String: Any]] else { return Observable.empty() }
                 
                 var requests: [Observable<Any>] = []
                 var places: [String: String] = [:]
-                var dataMatrix: [[String: Any]] = []
                 
                 for json in jsonArray {
                     if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty,
@@ -209,36 +208,50 @@ public class USIGNormalizadorController: UIViewController {
                         }
                     }
                 }
+                
+                guard requests.count > 0 else { return Observable.empty() }
                
                 return Observable.from(requests)
                     .merge()
                     .toArray()
                     .filter(self.filterNormalizationResults)
-                    .scan(dataMatrix, accumulator: { (matrix, item) -> [[String: Any]] in
-                        guard jsonArray.count > 0 else { return dataMatrix }
-                        
+                    .scan([] as [[String: Any]], accumulator: { (matrix, item) -> [[String: Any]] in
                         let responses = item as! [[String: Any]]
-                        var place: [String: Any] = [:]
-                        var filteredAddresses: [[String: Any]] = []
+                        var normalizationResponses: [[String: Any]] = []
+                        
+                        for (var response) in responses {
+                            var normalizedAddresses = response["direccionesNormalizadas"] as! [[String: Any]] // We already checked -> self.filterNormalizationResults
+                            
+                            for (addressIndex, address) in normalizedAddresses.enumerated() {
+                                if let fullAddress = address["direccion"] as? String, let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
+                                    normalizedAddresses[addressIndex]["label"] = places[key]
+                                    response["direccionesNormalizadas"] = normalizedAddresses
+                                }
+                            }
+                            
+                            normalizationResponses.append(response)
+                        }
+                        
+                        return normalizationResponses
+                    })
+                    .flatMap({ [unowned self] array -> Observable<USIGNormalizadorResponse> in
+                        var responses: [USIGNormalizadorResponse] = []
+                        var addresses: [USIGNormalizadorAddress] = []
+                        
+                        for item in array {
+                            responses.append(self.getResponse(item))
+                        }
                         
                         for response in responses {
-                            guard var normalizedAddresses = response["direccionesNormalizadas"] as? [[String: Any]] else { break }
-                            
-                            for (itemIndex, address) in normalizedAddresses.enumerated() {
-                                if let fullAddress = address["direccion"] as? String, let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
-                                    normalizedAddresses[itemIndex]["label"] = places[key]
-                                    filteredAddresses = filteredAddresses + normalizedAddresses
-                                }
+                            if response.error == nil, let list = response.addresses {
+                                addresses = addresses + list
                             }
                         }
                         
-                        place["direccionesNormalizadas"] = filteredAddresses
-                
-                        dataMatrix.append(place)
-                        
-                        return dataMatrix
+                        return Observable.of(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: addresses, error: nil))
                     })
-        }
+            }
+        
         
         // Swift does not allow generic closures
 
@@ -254,27 +267,34 @@ public class USIGNormalizadorController: UIViewController {
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
         
+        normalizationStream
+            .subscribe(onNext: handleNormalizationResults, onError: handleError)
+            .addDisposableTo(disposeBag)
+        
         epokStream
             .subscribe(onNext: handleEpokResults, onError: handleError)
             .addDisposableTo(disposeBag)
+    }
+    
+    private func getResponse(_ result: Any, source: TargetType.Type = USIGNormalizadorAPI.self) -> USIGNormalizadorResponse {
+        guard let json = result as? [String: Any] else {
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
+        }
         
+        if let message = json["errorMessage"] as? String {
+            if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
+                return USIGNormalizadorResponse(source: source, addresses: nil, error: .streetNotFound("streetNotFound", nil, nil))
+            }
+            else {
+                return USIGNormalizadorResponse(source: source, addresses: nil, error: .service("service", nil, nil))
+            }
+        }
         
-        /*
-        normalizationStream
-            .subscribe(onNext: { [unowned self] results in
-                let addresses = self.getAddresses(results)
-                
-                self.handleResults(results, addressList: addresses)
-            }, onError: handleError)
-            .addDisposableTo(disposeBag)
- */
-
-        /*
-        searchStream
-            .flatMapLatest(makeNormalizationRequest)
-            .subscribe(onNext: handleResults, onError: handleError)
-            .addDisposableTo(disposeBag)
- */
+        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
+        }
+        
+        return USIGNormalizadorResponse(source: source, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
     }
 
     private func setInitialValue() {
@@ -312,8 +332,9 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func filterNormalizationResults(_ value: Any) -> Bool {
-        if let dict = value as? [String: Any],
-            (dict["direccionesNormalizadas"] as? [[String: Any]] == nil || (dict["direccionesNormalizadas"] as! [[String: Any]]).count == 0) {
+        if let json = value as? [String: Any],
+            (json["direccionesNormalizadas"] as? [[String: Any]] == nil || (json["direccionesNormalizadas"] as! [[String: Any]]).count == 0),
+            json["errorMessage"] as? String != nil {
             return false
         }
         
@@ -360,19 +381,14 @@ public class USIGNormalizadorController: UIViewController {
         return USIGNormalizador.getAddresses(addresses)
     }
     
-    private func handleNormalizationResults(_ results: Any, addressList: [USIGNormalizadorAddress]) {
-        guard let json = results as? [String: Any] else {
-            debugPrint("ERROR: Could not contact USIG service")
-            reloadTable()
-            
-            return
-        }
-        
-        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
+    private func handleNormalizationResults(_ results: USIGNormalizadorResponse) {
+        guard results.error == nil else {
+            switch results.error! {
+            case .other(_, _, _):
+                debugPrint("ERROR: Could not contact USIG Normalization service")
+            case .streetNotFound(_, _, _):
                 state = .notFound
-            }
-            else {
+            default:
                 state = .error
             }
             
@@ -381,15 +397,28 @@ public class USIGNormalizadorController: UIViewController {
             return
         }
         
-        self.results = self.ranker.rank(addresses: getAddresses(addresses), in: self.results)
+        self.results = self.ranker.rank(addresses: results.addresses ?? [], in: self.results)
         
         self.handleFirstSection()
     }
     
-    private func handleEpokResults(_ results: Any) {
-        guard let response = results as? [[String: Any]], response.count > 0, let addressesJsonArray = response[0]["direccionesNormalizadas"] as? [[String: Any]] else { return }
+    private func handleEpokResults(_ results: USIGNormalizadorResponse) {
+        guard results.error == nil else {
+            switch results.error! {
+            case .other(_, _, _):
+                debugPrint("ERROR: Could not contact USIG Normalization service")
+            case .streetNotFound(_, _, _):
+                state = .notFound
+            default:
+                state = .error
+            }
+            
+            reloadTable()
+            
+            return
+        }
         
-        self.results = self.ranker.rank(places: USIGNormalizador.getAddresses(addressesJsonArray), in: self.results)
+        self.results = self.ranker.rank(places: results.addresses ?? [], in: self.results)
         
         self.handleFirstSection()
     }

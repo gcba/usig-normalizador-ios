@@ -41,19 +41,22 @@ public class USIGNormalizador {
                 return
             }
             
-            guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-                if let message = json?["errorMessage"] as? String {
-                    if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                        completion(nil, USIGNormalizadorError.streetNotFound("Street not found", response.value?.statusCode, response.value?.response))
-                    }
-                    else {
-                        completion(nil, USIGNormalizadorError.service("\(message)", response.value?.statusCode, response.value?.response))
-                    }
+            if let message = json?["errorMessage"] as? String {
+                if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
+                    completion(nil, USIGNormalizadorError.streetNotFound("Street not found", response.value?.statusCode, response.value?.response))
+                    
+                    return
                 }
                 else {
-                    completion(nil, USIGNormalizadorError.other(defaultError, response.value?.statusCode, response.value?.response))
+                    completion(nil, USIGNormalizadorError.service("\(message)", response.value?.statusCode, response.value?.response))
+                    
+                    return
                 }
-                
+            }
+            
+            guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+                completion(nil, USIGNormalizadorError.other(defaultError, response.value?.statusCode, response.value?.response))
+                    
                 return
             }
             

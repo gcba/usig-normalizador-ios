@@ -131,4 +131,12 @@ extension USIGEpokAPI: TargetType {
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
 
+// MARK: - USIGResponse
+
+internal struct USIGNormalizadorResponse {
+    let source: TargetType.Type
+    let addresses: [USIGNormalizadorAddress]?
+    let error: USIGNormalizadorError?
+}
+
 
