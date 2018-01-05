@@ -192,7 +192,7 @@ public class USIGNormalizadorController: UIViewController {
                 var places: [String: String] = [:]
                 
                 for json in jsonArray {
-                    if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty,
+                    if let normalizedAddress = (json["direccionNormalizada"] as? String)?.uppercased(), !normalizedAddress.isEmpty,
                         let content = json["contenido"] as? [[String: Any]] {
                         var name: String?
                         
@@ -223,7 +223,7 @@ public class USIGNormalizadorController: UIViewController {
                             var normalizedAddresses = response["direccionesNormalizadas"] as! [[String: Any]] // We already checked -> self.filterNormalizationResults
                             
                             for (addressIndex, address) in normalizedAddresses.enumerated() {
-                                if let fullAddress = address["direccion"] as? String, let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
+                                if let fullAddress = (address["direccion"] as? String)?.uppercased(), let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
                                     normalizedAddresses[addressIndex]["label"] = places[key]
                                     response["direccionesNormalizadas"] = normalizedAddresses
                                 }
