@@ -189,15 +189,28 @@ public class USIGNormalizadorController: UIViewController {
                 guard let jsonArray = result as? [[String: Any]] else { return Observable.empty() }
                 
                 var requests: [Observable<Any>] = []
+                var places: [String: String] = [:]
                 var dataMatrix: [[String: Any]] = []
                 var index = 0;
                 
                 for json in jsonArray {
-                    if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty {
-                        requests.append(self.makeNormalizationRequest(normalizedAddress))
+                    if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty,
+                        let content = json["contenido"] as? [[String: Any]] {
+                        var name: String?
+                        
+                        for item in content {
+                            if let nameId = item["nombreId"] as? String, nameId == "nombre", let value = item["valor"] as? String {
+                                name = value
+                            }
+                        }
+
+                        if name != nil {
+                            requests.append(self.makeNormalizationRequest(normalizedAddress))
+                            places[normalizedAddress] = name!
+                        }
                     }
                 }
-               
+
                 return Observable.from(requests)
                     .merge()
                     .toArray()
@@ -205,26 +218,18 @@ public class USIGNormalizadorController: UIViewController {
                     .scan(dataMatrix, accumulator: { (matrix, item) -> [[String: Any]] in
                         guard jsonArray.count > 0, jsonArray.count > index else { return dataMatrix }
                         
-                        let addresses = item as! [[String: Any]]
+                        let responses = item as! [[String: Any]]
                         var place = jsonArray[index]
                         var filteredAddresses: [[String: Any]] = []
                         
-                        for address in addresses {
-                            if var normalizedAddresses = address["direccionesNormalizadas"] as? [[String: Any]],
-                            let content = jsonArray[index]["contenido"] as? [[String: Any]] {
-                                var name: String?
-                                
-                                for item in content {
-                                    if let nameId = item["nombreId"] as? String, nameId == "nombre", let value = item["valor"] as? String {
-                                        name = value
-                                    }
+                        for response in responses {
+                            guard var normalizedAddresses = response["direccionesNormalizadas"] as? [[String: Any]] else { break }
+                            
+                            for (itemIndex, address) in normalizedAddresses.enumerated() {
+                                if let fullAddress = address["direccion"] as? String, let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
+                                    normalizedAddresses[itemIndex]["label"] = places[key]
+                                    filteredAddresses = filteredAddresses + normalizedAddresses
                                 }
-                                
-                                for (itemIndex, _) in normalizedAddresses.enumerated() {
-                                    normalizedAddresses[itemIndex]["label"] = name
-                                }
-                                
-                                filteredAddresses = filteredAddresses + normalizedAddresses
                             }
                         }
                         
@@ -251,7 +256,8 @@ public class USIGNormalizadorController: UIViewController {
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
         
-        epokStream.subscribe(onNext: handleEpokResults, onError: handleError)
+        epokStream
+            .subscribe(onNext: handleEpokResults, onError: handleError)
             .addDisposableTo(disposeBag)
         
         
