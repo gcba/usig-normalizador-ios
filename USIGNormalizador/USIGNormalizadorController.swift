@@ -191,7 +191,6 @@ public class USIGNormalizadorController: UIViewController {
                 var requests: [Observable<Any>] = []
                 var places: [String: String] = [:]
                 var dataMatrix: [[String: Any]] = []
-                var index = 0;
                 
                 for json in jsonArray {
                     if let normalizedAddress = json["direccionNormalizada"] as? String, !normalizedAddress.isEmpty,
@@ -210,16 +209,16 @@ public class USIGNormalizadorController: UIViewController {
                         }
                     }
                 }
-
+               
                 return Observable.from(requests)
                     .merge()
                     .toArray()
                     .filter(self.filterNormalizationResults)
                     .scan(dataMatrix, accumulator: { (matrix, item) -> [[String: Any]] in
-                        guard jsonArray.count > 0, jsonArray.count > index else { return dataMatrix }
+                        guard jsonArray.count > 0 else { return dataMatrix }
                         
                         let responses = item as! [[String: Any]]
-                        var place = jsonArray[index]
+                        var place: [String: Any] = [:]
                         var filteredAddresses: [[String: Any]] = []
                         
                         for response in responses {
@@ -234,7 +233,6 @@ public class USIGNormalizadorController: UIViewController {
                         }
                         
                         place["direccionesNormalizadas"] = filteredAddresses
-                        index += 1
                 
                         dataMatrix.append(place)
                         
@@ -357,9 +355,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func getAddresses(_ results: Any) -> [USIGNormalizadorAddress] {
-        guard let json = results as? [String: Any], let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            return []
-        }
+        guard let json = results as? [String: Any], let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else { return [] }
         
         return USIGNormalizador.getAddresses(addresses)
     }
