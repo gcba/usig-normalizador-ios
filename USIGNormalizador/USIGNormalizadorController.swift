@@ -222,7 +222,7 @@ public class USIGNormalizadorController: UIViewController {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
-            hideForceNormalizationCell = true
+            hideForceNormalizationCell = showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0)
 
             reloadTable()
 
@@ -332,6 +332,14 @@ public class USIGNormalizadorController: UIViewController {
         }
 
         if !forceNormalization {
+            debugPrint("!isEqual deberia ser TRUE, es:", !isEqual)
+            debugPrint("!deleteRow deberia ser TRUE, es:", !deleteRow)
+            debugPrint("showPin es:", showPin)
+            debugPrint("rowsInFirstSection == 1) es:", rowsInFirstSection == 1)
+            debugPrint("(rowsInFirstSection == 0 && !hideForceNormalizationCell) es:", (rowsInFirstSection == 0 && !hideForceNormalizationCell))
+            debugPrint("rowsInFirstSection es:", rowsInFirstSection)
+            debugPrint("!hideForceNormalizationCell es:", !hideForceNormalizationCell)
+            
             insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell))
         }
 
