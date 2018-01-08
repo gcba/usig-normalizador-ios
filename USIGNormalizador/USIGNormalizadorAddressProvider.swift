@@ -21,20 +21,20 @@ internal protocol USIGNormalizadorAddressProvider {
 extension USIGNormalizadorAddressProvider {
     func getResponse(from result: Any, source: TargetType.Type = USIGNormalizadorAPI.self) -> USIGNormalizadorResponse {
         guard let json = result as? [String: Any] else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown", nil, nil))
         }
         
         if let message = json["errorMessage"] as? String {
             if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                return USIGNormalizadorResponse(source: source, addresses: nil, error: .streetNotFound("streetNotFound", nil, nil))
+                return USIGNormalizadorResponse(source: source, addresses: nil, error: .streetNotFound("Street not found", nil, nil))
             }
             else {
-                return USIGNormalizadorResponse(source: source, addresses: nil, error: .service("service", nil, nil))
+                return USIGNormalizadorResponse(source: source, addresses: nil, error: .service("Unknown service error", nil, nil))
             }
         }
         
         guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown", nil, nil))
         }
         
         return USIGNormalizadorResponse(source: source, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
@@ -48,7 +48,11 @@ extension USIGNormalizadorAddressProvider {
         return APIProvider
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: USIGNormalizadorAPI.self, addresses: nil, error: .other("json parsing", nil, nil))))
+            .catchErrorJustReturn(
+                Observable.just(
+                    USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing Normalization json", nil, nil))
+                )
+            )
     }
 }
 
@@ -84,23 +88,36 @@ internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
         guard let text = query else { return Observable.empty() }
         
+        // TODO: Make configurable
         let request = USIGEpokAPI.buscar(texto: text, categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: 3, total: nil)
         
         return epokAPIProvider
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("json parsing", nil, nil))))
+            .catchErrorJustReturn(
+                Observable.just(
+                    USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK Search json", nil, nil))
+                )
+            )
     }
     
     private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
-        guard let id = object else { return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("nil id", nil, nil))) }
+        guard let id = object else {
+            return Observable.just(
+                USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("EPOK id for GetObjectContent is nil", nil, nil))
+            )
+        }
         
         let request = USIGEpokAPI.getObjectContent(id: id)
         
         return epokAPIProvider
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("json parsing", nil, nil))))
+            .catchErrorJustReturn(
+                Observable.just(
+                    USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK GetObjectContent json", nil, nil))
+                )
+            )
     }
     
     private func filterNormalizationResults(_ value: Any) -> Bool {
@@ -141,7 +158,9 @@ internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
             // Parse, check and make Normalization request
             .flatMap { result -> Observable<USIGNormalizadorResponse> in
                 guard let jsonArray = result as? [[String: Any]] else {
-                    return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("json array casting", nil, nil)))
+                    return Observable.just(
+                        USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Casting EPOK GetObjectContentRequest json arrays", nil, nil))
+                    )
                 }
                 
                 var requests: [Observable<Any>] = []
@@ -166,7 +185,9 @@ internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
                 }
                 
                 guard requests.count > 0 else {
-                    return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("empty", nil, nil)))
+                    return Observable.just(
+                        USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("No EPOK object with a normalized address", nil, nil))
+                    )
                 }
                 
                 // Parse, check and build response objects
