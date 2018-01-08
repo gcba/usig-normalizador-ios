@@ -90,8 +90,8 @@ public class USIGNormalizadorController: UIViewController {
         setupTableView()
         setupAPIProviders()
         setupRx()
+        setupKeyboardNotifications()
         setInitialValue()
-        setKeyboardNotifications()
 
         definesPresentationContext = true
     }
@@ -178,17 +178,34 @@ public class USIGNormalizadorController: UIViewController {
             .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
     }
+    
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+    }
 
     private func setInitialValue() {
         if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
             searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
         }
     }
-
-    private func setKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+    
+    // MARK: - Notifications
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
+            let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
+        
+        DispatchQueue.main.async {
+            self.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        DispatchQueue.main.async {
+            self.tableBottomConstraint.constant = 0
+        }
     }
 
     // MARK: - Helper methods
@@ -336,22 +353,7 @@ public class USIGNormalizadorController: UIViewController {
             reloadTable()
         }
     }
-
-    @objc private func keyboardWillShow(_ notification: Notification) {
-        guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
-            let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
-
-        DispatchQueue.main.async {
-            self.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
-        }
-    }
-
-    @objc private func keyboardWillHide(_ notification: Notification) {
-        DispatchQueue.main.async {
-            self.tableBottomConstraint.constant = 0
-        }
-    }
-
+    
     private func reloadTable() {
         DispatchQueue.main.async {
             self.table.reloadData()
