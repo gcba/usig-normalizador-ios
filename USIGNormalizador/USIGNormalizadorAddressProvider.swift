@@ -21,7 +21,7 @@ internal protocol USIGNormalizadorAddressProvider {
 extension USIGNormalizadorAddressProvider {
     func getResponse(from result: Any, source: TargetType.Type = USIGNormalizadorAPI.self) -> USIGNormalizadorResponse {
         guard let json = result as? [String: Any] else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown", nil, nil))
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown error", nil, nil))
         }
         
         if let message = json["errorMessage"] as? String {
@@ -34,7 +34,7 @@ extension USIGNormalizadorAddressProvider {
         }
         
         guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown", nil, nil))
+            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown error", nil, nil))
         }
         
         return USIGNormalizadorResponse(source: source, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
@@ -214,6 +214,7 @@ internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
                         
                         return normalizationResponses
                     })
+                    // Flatten all response objects into one
                     .flatMap({ array -> Observable<USIGNormalizadorResponse> in
                         let responses: [USIGNormalizadorResponse] = array.map {item in getResponse(item, USIGEpokAPI.self) }
                         let addresses: [USIGNormalizadorAddress] = responses.filter{ item in item.error == nil && item.addresses != nil } .flatMap { item in item.addresses! }
