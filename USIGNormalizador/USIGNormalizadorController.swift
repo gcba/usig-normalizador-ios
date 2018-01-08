@@ -156,11 +156,8 @@ public class USIGNormalizadorController: UIViewController {
             .filter(filterSearch)
             .shareReplayLatestWhileConnected()
         
-        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationProvider)
-            .observeOn(ConcurrentMainScheduler.instance)
-        
+        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationProvider)        
         let epokStream = epokAddressProvider.getStream(from: searchStream, api: epokProvider)
-            .observeOn(ConcurrentMainScheduler.instance)
 
         table.rx
             .itemSelected
