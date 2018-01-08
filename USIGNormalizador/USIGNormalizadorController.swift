@@ -222,7 +222,7 @@ public class USIGNormalizadorController: UIViewController {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
-            hideForceNormalizationCell = showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0)
+            hideForceNormalizationCell = true
 
             reloadTable()
 
@@ -323,23 +323,17 @@ public class USIGNormalizadorController: UIViewController {
 
                 if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
                     isEqual = true
-
-                    if showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1) {
-                        deleteRow = !hideForceNormalizationCell
+                    
+                    if hideForceNormalizationCell {
+                        hideForceNormalizationCell = false
                     }
+
+                    deleteRow = (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)) && hideForceNormalizationCell
                 }
             }
         }
 
         if !forceNormalization {
-            debugPrint("!isEqual deberia ser TRUE, es:", !isEqual)
-            debugPrint("!deleteRow deberia ser TRUE, es:", !deleteRow)
-            debugPrint("showPin es:", showPin)
-            debugPrint("rowsInFirstSection == 1) es:", rowsInFirstSection == 1)
-            debugPrint("(rowsInFirstSection == 0 && !hideForceNormalizationCell) es:", (rowsInFirstSection == 0 && !hideForceNormalizationCell))
-            debugPrint("rowsInFirstSection es:", rowsInFirstSection)
-            debugPrint("!hideForceNormalizationCell es:", !hideForceNormalizationCell)
-            
             insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell))
         }
 
@@ -426,9 +420,6 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: attributes)
             cell.detailTextLabel?.attributedText = nil
         }
-        
-        debugPrint("!forceNormalization deberia ser TRUE, es:", !forceNormalization)
-        debugPrint("!hideForceNormalizationCell deberia ser TRUE, es:", !hideForceNormalizationCell)
         
         return cell
     }
