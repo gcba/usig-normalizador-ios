@@ -217,7 +217,13 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 { return true }
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 {
+            if !forceNormalization {
+                hideForceNormalizationCell = false
+            }
+            
+            return true
+        }
         else  {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
@@ -318,26 +324,22 @@ public class USIGNormalizadorController: UIViewController {
         var deleteRow = false
 
         for address in results {
-            if !forceNormalization {
-                let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased()
-
-                if searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                    isEqual = true
-                    
-                    if hideForceNormalizationCell {
-                        hideForceNormalizationCell = false
-                    }
-
-                    deleteRow = (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)) && hideForceNormalizationCell
-                }
+            if !forceNormalization, let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased(),
+                searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
+                
+                debugPrint("TEXT:", searchText, "ADDRESS:", address.address.replacingOccurrences(of: addressSufix, with: ""))
+                
+                isEqual = true
+                hideForceNormalizationCell = showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)
             }
         }
 
         if !forceNormalization {
-            insertRow = !isEqual && !deleteRow && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 && !hideForceNormalizationCell))
+            insertRow = !isEqual && !deleteRow && !hideForceNormalizationCell && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 ))
+            deleteRow = isEqual && (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1))
         }
 
-        if insertRow || deleteRow {
+        if insertRow || deleteRow || (hideForceNormalizationCell && !isEqual) {
             DispatchQueue.main.async { [unowned self] in
                 self.table.reloadSections(IndexSet(integer: 1), with: .none)
 
