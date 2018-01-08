@@ -13,29 +13,6 @@ import RxCocoa
 import Moya
 import DZNEmptyDataSet
 
-fileprivate enum Ranker {
-    case placesFirst
-    case placesLast
-    
-    func rank(addresses: [USIGNormalizadorAddress], in list: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
-        switch self {
-        case .placesFirst:
-            return list + addresses
-        case .placesLast:
-            return addresses + list
-        }
-    }
-    
-    func rank(places: [USIGNormalizadorAddress], in list: [USIGNormalizadorAddress]) -> [USIGNormalizadorAddress] {
-        switch self {
-        case .placesFirst:
-            return places + list
-        case .placesLast:
-            return list + places
-        }
-    }
-}
-
 fileprivate enum SearchState {
     case notFound
     case empty
@@ -102,7 +79,6 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let addressSufix: String = ", CABA"
-    fileprivate let ranker: Ranker = .placesFirst
 
     // MARK: - Overrides
 
@@ -112,6 +88,7 @@ public class USIGNormalizadorController: UIViewController {
         checkDelegate()
         setupNavigationBar()
         setupTableView()
+        setupAPIProviders()
         setupRx()
         setInitialValue()
         setKeyboardNotifications()
@@ -149,152 +126,61 @@ public class USIGNormalizadorController: UIViewController {
         table.emptyDataSetSource = self
         table.emptyDataSetDelegate = self
     }
-
-    private func setupRx() {
+    
+    private func setupAPIProviders() {
         let requestClosure = { (request: URLRequest, done: RxMoyaProvider.RequestResultClosure) in
             var mutableRequest = request
-
+            
             mutableRequest.cachePolicy = .returnCacheDataElseLoad
-
-            done(.success(request))
+            
+            done(.success(mutableRequest))
         }
+        
+        // TODO: Rename to ...APIProvider
+        normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
+            requestClosure(endpoint.urlRequest!, done)
+        })
+        
+        epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
+            requestClosure(endpoint.urlRequest!, done)
+        })
+    }
 
+    private func setupRx() {
+        let normalizationAddressProvider = NormalizadorAddressProvider()
+        let epokAddressProvider = EpokAddressProvider(epokAPIProvider: epokProvider, normalizationAPIProvider: normalizationProvider)
+        
         let searchStream = searchController.searchBar.rx
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
+            .shareReplayLatestWhileConnected()
         
-        let normalizationStream = searchStream
+        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationProvider)
             .observeOn(ConcurrentMainScheduler.instance)
-            .flatMapLatest(makeNormalizationRequest)
-            .flatMap { [unowned self] item in Observable.from(optional: self.getResponse(item)) }
         
-        let epokStream = searchStream
+        let epokStream = epokAddressProvider.getStream(from: searchStream, api: epokProvider)
             .observeOn(ConcurrentMainScheduler.instance)
-            .flatMapLatest(makeEpokSearchRequest)
-            .flatMap { [unowned self] result -> Observable<[Any]> in
-                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, instances.count > 0 else { return Observable.empty() }
-                
-                var requests: [Observable<Any>] = []
-                
-                for item in instances {
-                    if let id = item["id"] {
-                        requests.append(self.makeEpokGetObjectContentRequest(id))
-                    }
-                }
-                
-                return Observable.from(requests).merge().toArray()
-            }
-            .flatMap { [unowned self] result -> Observable<USIGNormalizadorResponse> in
-                guard let jsonArray = result as? [[String: Any]] else { return Observable.empty() }
-                
-                var requests: [Observable<Any>] = []
-                var places: [String: String] = [:]
-                
-                for json in jsonArray {
-                    if let normalizedAddress = (json["direccionNormalizada"] as? String)?.uppercased(), !normalizedAddress.isEmpty,
-                        let content = json["contenido"] as? [[String: Any]] {
-                        var name: String?
-                        
-                        for item in content {
-                            if let nameId = item["nombreId"] as? String, nameId == "nombre", let value = item["valor"] as? String {
-                                name = value
-                            }
-                        }
 
-                        if name != nil {
-                            requests.append(self.makeNormalizationRequest(normalizedAddress))
-                            places[normalizedAddress] = name!
-                        }
-                    }
-                }
-                
-                guard requests.count > 0 else { return Observable.empty() }
-               
-                return Observable.from(requests)
-                    .merge()
-                    .toArray()
-                    .filter(self.filterNormalizationResults)
-                    .scan([] as [[String: Any]], accumulator: { (matrix, item) -> [[String: Any]] in
-                        let responses = item as! [[String: Any]]
-                        var normalizationResponses: [[String: Any]] = []
-                        
-                        for (var response) in responses {
-                            var normalizedAddresses = response["direccionesNormalizadas"] as! [[String: Any]] // We already checked -> self.filterNormalizationResults
-                            
-                            for (addressIndex, address) in normalizedAddresses.enumerated() {
-                                if let fullAddress = (address["direccion"] as? String)?.uppercased(), let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
-                                    normalizedAddresses[addressIndex]["label"] = places[key]
-                                    response["direccionesNormalizadas"] = normalizedAddresses
-                                }
-                            }
-                            
-                            normalizationResponses.append(response)
-                        }
-                        
-                        return normalizationResponses
-                    })
-                    .flatMap({ [unowned self] array -> Observable<USIGNormalizadorResponse> in
-                        var responses: [USIGNormalizadorResponse] = []
-                        var addresses: [USIGNormalizadorAddress] = []
-                        
-                        for item in array {
-                            responses.append(self.getResponse(item))
-                        }
-                        
-                        for response in responses {
-                            if response.error == nil, let list = response.addresses {
-                                addresses = addresses + list
-                            }
-                        }
-                        
-                        return Observable.of(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: addresses, error: nil))
-                    })
-            }
-        
-        
-        // Swift does not allow generic closures
-
-        normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
-        })
-
-        epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
-        })
-
-        _ = table.rx
+        table.rx
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
-        
-        normalizationStream
-            .subscribe(onNext: handleNormalizationResults, onError: handleError)
             .addDisposableTo(disposeBag)
         
-        epokStream
-            .subscribe(onNext: handleEpokResults, onError: handleError)
+        searchStream.subscribe { _ in
+            DispatchQueue.main.async { [unowned self] in
+                if !self.searchController.searchBar.isLoading {
+                    self.searchController.searchBar.isLoading = true
+                }
+            }
+        }
+        .addDisposableTo(disposeBag)
+        
+        DefaultAddressManager()
+            .getStreams(from: [normalizationStream, epokStream])
+            .observeOn(ConcurrentMainScheduler.instance)
+            .subscribe(onNext: handleResults, onError: handleError)
             .addDisposableTo(disposeBag)
-    }
-    
-    private func getResponse(_ result: Any, source: TargetType.Type = USIGNormalizadorAPI.self) -> USIGNormalizadorResponse {
-        guard let json = result as? [String: Any] else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
-        }
-        
-        if let message = json["errorMessage"] as? String {
-            if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                return USIGNormalizadorResponse(source: source, addresses: nil, error: .streetNotFound("streetNotFound", nil, nil))
-            }
-            else {
-                return USIGNormalizadorResponse(source: source, addresses: nil, error: .service("service", nil, nil))
-            }
-        }
-        
-        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("unknown", nil, nil))
-        }
-        
-        return USIGNormalizadorResponse(source: source, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
     }
 
     private func setInitialValue() {
@@ -331,129 +217,45 @@ public class USIGNormalizadorController: UIViewController {
         }
     }
     
-    private func filterNormalizationResults(_ value: Any) -> Bool {
-        if let json = value as? [String: Any],
-            (json["direccionesNormalizadas"] as? [[String: Any]] == nil || (json["direccionesNormalizadas"] as! [[String: Any]]).count == 0),
-            json["errorMessage"] as? String != nil {
-            return false
-        }
-        
-        return true
-    }
-
-    private func makeRequest<API>(request: API, provider: RxMoyaProvider<API>) -> Observable<Any> {
-        if !searchController.searchBar.isLoading {
-            searchController.searchBar.isLoading = true
-        }
-
-        return provider
-            .request(request)
-            .mapJSON().catchError { _ in Observable.never() }
-    }
-
-    private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
-        guard let text = query else { return Observable.empty() }
-
-        let request = USIGEpokAPI.buscar(texto: text, categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: 3, total: nil)
-
-        return makeRequest(request: request, provider: epokProvider)
-    }
-
-    private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
-        guard let id = object else { return Observable.empty() }
-
-        let request = USIGEpokAPI.getObjectContent(id: id)
-
-        return makeRequest(request: request, provider: epokProvider)
-    }
-
-    private func makeNormalizationRequest(_ query: String?) -> Observable<Any> {
-        guard let text = query else { return Observable.empty() }
-
-        let request = USIGNormalizadorAPI.normalizar(direccion: text.trimmingCharacters(in: whitespace).lowercased(), excluyendo: exclusions, geocodificar: true, max: maxResults)
-
-        return makeRequest(request: request, provider: normalizationProvider)
-    }
-    
-    private func getAddresses(_ results: Any) -> [USIGNormalizadorAddress] {
-        guard let json = results as? [String: Any], let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else { return [] }
-        
-        return USIGNormalizador.getAddresses(addresses)
-    }
-    
-    private func handleNormalizationResults(_ results: USIGNormalizadorResponse) {
-        guard results.error == nil else {
-            switch results.error! {
-            case .other(_, _, _):
-                debugPrint("ERROR: Could not contact USIG Normalization service")
-            case .streetNotFound(_, _, _):
-                state = .notFound
-            default:
-                state = .error
-            }
-            
-            reloadTable()
-            
-            return
-        }
-        
-        self.results = self.ranker.rank(addresses: results.addresses ?? [], in: self.results)
-        
-        self.handleFirstSection()
-    }
-    
-    private func handleEpokResults(_ results: USIGNormalizadorResponse) {
-        guard results.error == nil else {
-            switch results.error! {
-            case .other(_, _, _):
-                debugPrint("ERROR: Could not contact USIG Normalization service")
-            case .streetNotFound(_, _, _):
-                state = .notFound
-            default:
-                state = .error
-            }
-            
-            reloadTable()
-            
-            return
-        }
-        
-        self.results = self.ranker.rank(places: results.addresses ?? [], in: self.results)
-        
-        self.handleFirstSection()
-    }
-
-    private func handleResults(_ results: Any, addressList: [USIGNormalizadorAddress]) {
+    private func handleResults(_ results: [USIGNormalizadorResponse]) {
         self.results = []
-        searchController.searchBar.isLoading = false
-
-        guard let json = results as? [String: Any] else {
-            debugPrint("ERROR: Could not contact USIG service")
-            reloadTable()
-
-            return
-        }
-
-        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            if let message = json["errorMessage"] as? String, message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                state = .notFound
+        
+        DispatchQueue.main.async {
+            if self.searchController.searchBar.isLoading {
+                self.searchController.searchBar.isLoading = false
             }
-            else {
-                state = .error
-            }
-
-            reloadTable()
-
-            return
         }
-
-        self.results = addressList
-
+        
+        for result in results {
+            if let error = result.error {
+                switch error {
+                case .streetNotFound(_, _, _):
+                    self.state = .notFound
+                case .service(let message, _, _):
+                    self.state = .error
+                    
+                    debugPrint("ERROR:", message)
+                case .other(let message, _, _):
+                    debugPrint("ERROR:", message)
+                default: break
+                }
+            }
+        }
+        
+        self.results = results.filter({ response in response.addresses != nil }).flatMap({ response in response.addresses! })
+        
         self.handleFirstSection()
+        self.reloadTable()
     }
 
     private func handleError(_ error: Swift.Error) {
-        searchController.searchBar.isLoading = false
+        DispatchQueue.main.async {
+            if self.searchController.searchBar.isLoading {
+                self.searchController.searchBar.isLoading = false
+            }
+        }
+        
+        self.results = []
         state = .error
 
         debugPrint(error)
@@ -594,7 +396,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let address = results[indexPath.row].address.replacingOccurrences(of: addressSufix, with: "")
             
             if let label = results[indexPath.row].label {
-                cell.textLabel?.text = label
+                cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
                 cell.detailTextLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text, fontSize: 12)
             } else {
                 cell.textLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text)
@@ -609,14 +411,19 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.imageView?.image = pinImage
             cell.imageView?.tintColor = pinColor
             cell.textLabel?.attributedText = NSAttributedString(string: pinText, attributes: attributes)
+            cell.detailTextLabel?.attributedText = nil
         }
         else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace) {
             let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
 
             cell.imageView?.image = nil
             cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: attributes)
+            cell.detailTextLabel?.attributedText = nil
         }
-
+        
+        debugPrint("!forceNormalization deberia ser TRUE, es:", !forceNormalization)
+        debugPrint("!hideForceNormalizationCell deberia ser TRUE, es:", !hideForceNormalizationCell)
+        
         return cell
     }
 }
