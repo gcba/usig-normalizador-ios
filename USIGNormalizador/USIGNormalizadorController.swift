@@ -68,8 +68,8 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     fileprivate var value: USIGNormalizadorAddress?
-    fileprivate var normalizationProvider: RxMoyaProvider<USIGNormalizadorAPI>!
-    fileprivate var epokProvider: RxMoyaProvider<USIGEpokAPI>!
+    fileprivate var normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var epokAPIProvider: RxMoyaProvider<USIGEpokAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
 
@@ -136,19 +136,18 @@ public class USIGNormalizadorController: UIViewController {
             done(.success(mutableRequest))
         }
         
-        // TODO: Rename to ...APIProvider
-        normalizationProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
+        normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
             requestClosure(endpoint.urlRequest!, done)
         })
         
-        epokProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
+        epokAPIProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
             requestClosure(endpoint.urlRequest!, done)
         })
     }
 
     private func setupRx() {
         let normalizationAddressProvider = NormalizadorAddressProvider()
-        let epokAddressProvider = EpokAddressProvider(epokAPIProvider: epokProvider, normalizationAPIProvider: normalizationProvider)
+        let epokAddressProvider = EpokAddressProvider(epokAPIProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
         
         let searchStream = searchController.searchBar.rx
             .text
@@ -156,8 +155,8 @@ public class USIGNormalizadorController: UIViewController {
             .filter(filterSearch)
             .shareReplayLatestWhileConnected()
         
-        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationProvider)        
-        let epokStream = epokAddressProvider.getStream(from: searchStream, api: epokProvider)
+        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationAPIProvider)
+        let epokStream = epokAddressProvider.getStream(from: searchStream, api: epokAPIProvider)
 
         table.rx
             .itemSelected
