@@ -26,7 +26,6 @@ public class USIGNormalizador {
         let request = USIGNormalizadorAPI.normalizar(direccion: query, excluyendo: excluding, geocodificar: true, max: maxResults)
         
         api.request(request) { response in
-            var result: [USIGNormalizadorAddress] = []
             let defaultError = "Error calling USIG API"
             
             if let error = response.error, let errorMessage = error.errorDescription {
@@ -59,12 +58,8 @@ public class USIGNormalizador {
                     
                 return
             }
-            
-            for item in addresses {
-                result.append(USIGNormalizador.getAddress(item))
-            }
-            
-            completion(result, nil)
+
+            completion(USIGNormalizador.getAddresses(addresses), nil)
         }
     }
     
@@ -88,7 +83,7 @@ public class USIGNormalizador {
             }
             
             let result = USIGNormalizadorAddress(
-                address: address.trimmingCharacters(in: .whitespacesAndNewlines),
+                address: address.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
                 street: street.trimmingCharacters(in: .whitespacesAndNewlines),
                 number: nil,
                 type: type.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -121,14 +116,8 @@ public class USIGNormalizador {
         )
     }
     
-    internal class func getAddresses(_ json: Array<[String: Any]>) -> [USIGNormalizadorAddress] {
-        var result: [USIGNormalizadorAddress] = []
-        
-        for item in json {
-            result.append(USIGNormalizador.getAddress(item))
-        }
-        
-        return result
+    internal class func getAddresses(_ jsonArray: Array<[String: Any]>) -> [USIGNormalizadorAddress] {
+        return jsonArray.map { item in USIGNormalizador.getAddress(item) }
     }
     
     internal class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {

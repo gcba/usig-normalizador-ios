@@ -15,10 +15,12 @@
 		C01F09BE1F82D43300E422E8 /* USIGNormalizadorDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */; };
 		C01F09C01F83E43300E422E8 /* USIGNormalizadorError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */; };
 		C046C7B21F85420B00050289 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C01ACADB1F84323900436606 /* Assets.xcassets */; };
+		C076C59D2003C5A50006975D /* USIGNormalizadorAddressManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */; };
 		D54747711F8C4CB900C9B761 /* USIGNormalizadorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */; };
 		D547F9F11F7D99B2002977C0 /* USIGNormalizador.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */; };
 		D547F9F61F7D99B2002977C0 /* USIGNormalizadorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */; };
 		D547F9F81F7D99B2002977C0 /* USIGNormalizador.h in Headers */ = {isa = PBXBuildFile; fileRef = D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D5A9780B2003581300D71676 /* USIGNormalizadorAddressProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A9780A2003581300D71676 /* USIGNormalizadorAddressProvider.swift */; };
 		D5CBCCCF1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCCE1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift */; };
 		D5CBCCD11F7DA24600CCF15D /* USIGNormalizadorAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCD01F7DA24600CCF15D /* USIGNormalizadorAddress.swift */; };
 		D5CBCCD31F7DA29200CCF15D /* USIGNormalizadorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */; };
@@ -92,6 +94,7 @@
 		C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizador.swift; sourceTree = "<group>"; };
 		C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorDelegate.swift; sourceTree = "<group>"; };
 		C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorError.swift; sourceTree = "<group>"; };
+		C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddressManager.swift; sourceTree = "<group>"; };
 		C85B0483E4623CE7AEA8E236 /* Pods_USIGNormalizadorTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_USIGNormalizadorTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorConfig.swift; sourceTree = "<group>"; };
 		D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = USIGNormalizador.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +103,7 @@
 		D547F9F01F7D99B2002977C0 /* USIGNormalizadorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = USIGNormalizadorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D547F9F51F7D99B2002977C0 /* USIGNormalizadorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorTests.swift; sourceTree = "<group>"; };
 		D547F9F71F7D99B2002977C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D5A9780A2003581300D71676 /* USIGNormalizadorAddressProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddressProvider.swift; sourceTree = "<group>"; };
 		D5CBCCCE1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAPI.swift; sourceTree = "<group>"; };
 		D5CBCCD01F7DA24600CCF15D /* USIGNormalizadorAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddress.swift; sourceTree = "<group>"; };
 		D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorController.swift; sourceTree = "<group>"; };
@@ -209,6 +213,8 @@
 				C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */,
 				C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */,
 				D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */,
+				D5A9780A2003581300D71676 /* USIGNormalizadorAddressProvider.swift */,
+				C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */,
 			);
 			path = USIGNormalizador;
 			sourceTree = "<group>";
@@ -619,10 +625,12 @@
 				D5CBCCD11F7DA24600CCF15D /* USIGNormalizadorAddress.swift in Sources */,
 				D5CBCCCF1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift in Sources */,
 				D5CBCCD31F7DA29200CCF15D /* USIGNormalizadorController.swift in Sources */,
+				D5A9780B2003581300D71676 /* USIGNormalizadorAddressProvider.swift in Sources */,
 				D54747711F8C4CB900C9B761 /* USIGNormalizadorConfig.swift in Sources */,
 				C01F09BE1F82D43300E422E8 /* USIGNormalizadorDelegate.swift in Sources */,
 				C01F09C01F83E43300E422E8 /* USIGNormalizadorError.swift in Sources */,
 				C01F09BC1F82CEAC00E422E8 /* USIGNormalizador.swift in Sources */,
+				C076C59D2003C5A50006975D /* USIGNormalizadorAddressManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
