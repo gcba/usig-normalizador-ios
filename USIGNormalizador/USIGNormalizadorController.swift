@@ -326,9 +326,6 @@ public class USIGNormalizadorController: UIViewController {
         for address in results {
             if !forceNormalization, let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased(),
                 searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                
-                debugPrint("TEXT:", searchText, "ADDRESS:", address.address.replacingOccurrences(of: addressSufix, with: ""))
-                
                 isEqual = true
                 hideForceNormalizationCell = showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)
             }
