@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import Moya
 
-internal protocol USIGNormalizadorAddressProvider {
+internal protocol USIGNormalizadorProvider {
     associatedtype API: TargetType
     
     func getStream(from searchStream: Observable<String?>, api provider: RxMoyaProvider<API>) -> Observable<USIGNormalizadorResponse>
@@ -18,7 +18,7 @@ internal protocol USIGNormalizadorAddressProvider {
     func makeNormalizationRequest(from query: String, APIProvider: RxMoyaProvider<USIGNormalizadorAPI>) -> Observable<Any>
 }
 
-extension USIGNormalizadorAddressProvider {
+extension USIGNormalizadorProvider {
     func getResponse(from result: Any, source: TargetType.Type = USIGNormalizadorAPI.self) -> USIGNormalizadorResponse {
         guard let json = result as? [String: Any] else {
             return USIGNormalizadorResponse(source: source, addresses: nil, error: .other("Unknown error", nil, nil))
@@ -56,7 +56,7 @@ extension USIGNormalizadorAddressProvider {
     }
 }
 
-internal class NormalizadorAddressProvider: USIGNormalizadorAddressProvider {
+internal class NormalizadorAddressProvider: USIGNormalizadorProvider {
     typealias API = USIGNormalizadorAPI
 
     func getStream(from searchStream: Observable<String?>, api provider: RxMoyaProvider<API>) -> Observable<USIGNormalizadorResponse> {
@@ -74,7 +74,7 @@ internal class NormalizadorAddressProvider: USIGNormalizadorAddressProvider {
     }
 }
 
-internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
+internal class EpokAddressProvider: USIGNormalizadorProvider {
     typealias API = USIGEpokAPI
     
     let normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>
@@ -223,4 +223,16 @@ internal class EpokAddressProvider: USIGNormalizadorAddressProvider {
                     })
         }
     }
+}
+
+protocol USIGNormalizadorProviderConfig {
+    associatedtype API: TargetType
+    
+    var apiProvider: RxMoyaProvider<API> { get }
+}
+
+internal struct NormalizadorProviderConfig: USIGNormalizadorProviderConfig {
+    typealias API = USIGNormalizadorAPI
+    
+    let apiProvider: RxMoyaProvider<API>
 }
