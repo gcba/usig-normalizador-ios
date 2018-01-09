@@ -236,3 +236,9 @@ internal struct NormalizadorProviderConfig: USIGNormalizadorProviderConfig {
     
     let apiProvider: RxMoyaProvider<API>
 }
+
+internal struct EpokProviderConfig: USIGNormalizadorProviderConfig {
+    typealias API = USIGEpokAPI
+    
+    let apiProvider: RxMoyaProvider<API>
+}
