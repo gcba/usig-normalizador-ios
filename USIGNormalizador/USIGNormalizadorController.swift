@@ -155,8 +155,15 @@ public class USIGNormalizadorController: UIViewController {
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
-            .shareReplayLatestWhileConnected()
             .flatMapLatest { query in Observable.from(optional: query) }
+            .shareReplayLatestWhileConnected()
+            .do(onNext: { _ in
+                DispatchQueue.main.async { [unowned self] in
+                    if !self.searchController.searchBar.isLoading {
+                        self.searchController.searchBar.isLoading = true
+                    }
+                }
+            })
         
         let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
         let epokStream = epokAddressProvider.getStream(from: searchStream)
@@ -165,15 +172,6 @@ public class USIGNormalizadorController: UIViewController {
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
             .addDisposableTo(disposeBag)
-        
-        searchStream.subscribe { _ in
-            DispatchQueue.main.async { [unowned self] in
-                if !self.searchController.searchBar.isLoading {
-                    self.searchController.searchBar.isLoading = true
-                }
-            }
-        }
-        .addDisposableTo(disposeBag)
         
         DefaultAddressManager()
             .getStreams(from: [normalizationStream, epokStream])
