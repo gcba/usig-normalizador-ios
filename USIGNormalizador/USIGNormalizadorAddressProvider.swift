@@ -115,7 +115,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 Observable.just(
                     USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK Search json", nil, nil))
                 )
-            )
+        )
     }
     
     private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
@@ -134,7 +134,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 Observable.just(
                     USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK GetObjectContent json", nil, nil))
                 )
-            )
+        )
     }
     
     private func filterNormalizationResults(_ value: Any) -> Bool {

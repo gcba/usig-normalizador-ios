@@ -334,10 +334,10 @@ public class USIGNormalizadorController: UIViewController {
 
         if !forceNormalization {
             insertRow = !isEqual && !deleteRow && !hideForceNormalizationCell && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 ))
-            deleteRow = isEqual && (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1))
+            deleteRow = (hideForceNormalizationCell && !isEqual) || (isEqual && (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)))
         }
 
-        if insertRow || deleteRow || (hideForceNormalizationCell && !isEqual) {
+        if insertRow || deleteRow {
             DispatchQueue.main.async { [unowned self] in
                 self.table.reloadSections(IndexSet(integer: 1), with: .none)
 
