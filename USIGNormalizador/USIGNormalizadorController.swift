@@ -146,17 +146,20 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setupRx() {
-        let normalizationAddressProvider = NormalizadorAddressProvider()
-        let epokAddressProvider = EpokAddressProvider(epokAPIProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
+        let normalizationConfig = NormalizadorProviderConfig(excluyendo: exclusions, geocodificar: true, max: maxResults)
+        let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
+        let epokConfig = EpokProviderConfig(categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: maxResults, total: false, normalization: normalizationConfig)
+        let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
         
         let searchStream = searchController.searchBar.rx
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
             .filter(filterSearch)
             .shareReplayLatestWhileConnected()
+            .flatMapLatest { query in Observable.from(optional: query) }
         
-        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream, api: normalizationAPIProvider)
-        let epokStream = epokAddressProvider.getStream(from: searchStream, api: epokAPIProvider)
+        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
+        let epokStream = epokAddressProvider.getStream(from: searchStream)
 
         table.rx
             .itemSelected
