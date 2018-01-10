@@ -173,7 +173,7 @@ public class USIGNormalizadorController: UIViewController {
             .subscribe(onNext: handleSelectedItem)
             .addDisposableTo(disposeBag)
         
-        DefaultAddressManager()
+        AddressManager()
             .getStreams(from: [normalizationStream, epokStream])
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: handleResults, onError: handleError)

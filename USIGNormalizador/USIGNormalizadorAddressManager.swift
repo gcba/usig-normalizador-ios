@@ -15,7 +15,7 @@ internal protocol USIGNormalizadorAddressManager {
     func getStreams(from sources: [Observable<USIGNormalizadorResponse>]) -> Observable<[USIGNormalizadorResponse]>
 }
 
-internal class DefaultAddressManager: USIGNormalizadorAddressManager {
+internal class AddressManager: USIGNormalizadorAddressManager {
     func getStreams(from sources: [Observable<USIGNormalizadorResponse>]) -> Observable<[USIGNormalizadorResponse]> {
         let streams = sources.map { stream in stream.observeOn(ConcurrentMainScheduler.instance) }
         
