@@ -198,7 +198,7 @@ public class USIGNormalizadorController: UIViewController {
         let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
         let pinAction = PinAction(cell: pinCell, visible: showPin)
         let noNormalizationCell = ActionCell()
-        let noNormalizationAction = NoNormalizationAction(cell: noNormalizationCell, visible: !forceNormalization)
+        let noNormalizationAction = NoNormalizationAction(cell: noNormalizationCell, visible: false) // Hide it at first because it's empty
         
         actions.append(pinAction)
         actions.append(noNormalizationAction)
@@ -238,6 +238,9 @@ public class USIGNormalizadorController: UIViewController {
     private func filterSearch(_ value: String?) -> Bool {
         if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 { return true }
         else  {
+            let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
+            
+            actions[actionIndex!].cell.text = NSAttributedString(string: "")
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
@@ -265,13 +268,13 @@ public class USIGNormalizadorController: UIViewController {
                 case .service(let message, _, _):
                     self.state = .error
                     
-                    debugPrint("ERROR:", message)
+                    debugPrint("ERROR: \(message)")
                 case .other(let message, _, _):
                     if result.source is USIGNormalizadorAPI.Type {
                         self.state = .error
                     }
                     
-                    debugPrint("ERROR:", message)
+                    debugPrint("ERROR: \(message)")
                 default: break
                 }
             }
@@ -279,7 +282,7 @@ public class USIGNormalizadorController: UIViewController {
         
         self.results = results.filter({ response in response.addresses != nil }).flatMap({ response in response.addresses! })
         
-        self.reloadTable(sections: [1])
+        reloadTable(sections: [1])
     }
 
     private func handleError(_ error: Swift.Error) {
@@ -342,15 +345,14 @@ public class USIGNormalizadorController: UIViewController {
             
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
-                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace),
-                text.characters.count > 2 {
+                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
                 let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
-                
+                let isEmpty = self.actions[actionIndex].cell.text.string.trimmingCharacters(in: self.whitespace).characters.count == 0
                 
                 self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
                 
-                if !isEqual != self.actions[actionIndex].visible.value {
-                    self.actions[actionIndex].visible.value = !isEqual
+                if (!isEqual || !isEmpty) && (self.state != .empty) != self.actions[actionIndex].visible.value {
+                    self.actions[actionIndex].visible.value = (!isEqual || !isEmpty) && (self.state != .empty)
                 }
                 else {
                     self.table.reloadSections(IndexSet(integer: 0), with: .none) // If we didn't modify the action visibility, the observable won't fire
