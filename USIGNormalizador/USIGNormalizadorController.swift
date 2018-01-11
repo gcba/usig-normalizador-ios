@@ -13,6 +13,61 @@ import RxCocoa
 import Moya
 import DZNEmptyDataSet
 
+private protocol USIGNormalizadorAction {
+    var cell: ActionCell { get set }
+    var visible: Variable<Bool> { get set }
+    
+    init(cell: ActionCell, visible: Bool)
+}
+
+private struct ActionCell {
+    init() {
+        self.icon = nil
+        self.iconTint = nil
+        self.text = NSAttributedString(string: "")
+        self.detailText = nil
+    }
+    
+    init(text: NSAttributedString = NSAttributedString(string: ""), detailText: NSAttributedString? = nil) {
+        self.init()
+        
+        self.text = text
+        self.detailText = detailText
+    }
+    
+    init(text: NSAttributedString = NSAttributedString(string: ""), detailText: NSAttributedString?, icon: UIImage? = nil, iconTint: UIColor? = nil) {
+        self.init(text: text, detailText: detailText)
+        
+        self.icon = icon
+        self.iconTint = iconTint
+    }
+    
+    var icon: UIImage?
+    var iconTint: UIColor?
+    var text: NSAttributedString
+    var detailText: NSAttributedString?
+}
+
+private class PinAction: USIGNormalizadorAction {
+    required init(cell: ActionCell, visible: Bool) {
+        self.cell = cell
+        self.visible = Variable<Bool>(visible)
+    }
+    
+    var cell: ActionCell
+    var visible: Variable<Bool>
+}
+
+private class NoNormalizationAction: USIGNormalizadorAction  {
+    required init(cell: ActionCell, visible: Bool) {
+        self.cell = cell
+        self.visible = Variable<Bool>(visible)
+    }
+    
+    var cell: ActionCell
+    var visible: Variable<Bool>
+}
+
 fileprivate enum SearchState {
     case notFound
     case empty
@@ -30,6 +85,23 @@ public class USIGNormalizadorController: UIViewController {
 
     public var delegate: USIGNormalizadorControllerDelegate?
     public var edit: String?
+    
+    fileprivate var value: USIGNormalizadorAddress?
+    fileprivate var normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var epokAPIProvider: RxMoyaProvider<USIGEpokAPI>!
+    fileprivate var onDismissCallback: ((UIViewController) -> Void)?
+    fileprivate var searchController: UISearchController!
+    
+    fileprivate var results: [USIGNormalizadorAddress] = []
+    fileprivate var state: SearchState = .empty
+    fileprivate var actions: [USIGNormalizadorAction] = []
+    fileprivate let disposeBag: DisposeBag = DisposeBag()
+    fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
+    fileprivate let addressSufix: String = ", CABA"
+    
+    fileprivate var visibleActions: [USIGNormalizadorAction] {
+        return actions.filter { action in action.visible.value }
+    }
 
     fileprivate var exclusions: String {
         return delegate?.exclude(self) ?? USIGNormalizadorConfig.exclusionsDefault
@@ -59,27 +131,6 @@ public class USIGNormalizadorController: UIViewController {
         return delegate?.pinText(self) ?? USIGNormalizadorConfig.pinTextDefault
     }
 
-    fileprivate var rowsInFirstSection: Int {
-        let pinCell = showPin ? 1 : 0
-        let normalizationCell = !forceNormalization && !hideForceNormalizationCell &&
-            searchController.searchBar.textField?.text != nil && searchController.searchBar.textField!.text!.trimmingCharacters(in: whitespace).characters.count > 0 ? 1 : 0
-
-        return pinCell + normalizationCell
-    }
-
-    fileprivate var value: USIGNormalizadorAddress?
-    fileprivate var normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>!
-    fileprivate var epokAPIProvider: RxMoyaProvider<USIGEpokAPI>!
-    fileprivate var onDismissCallback: ((UIViewController) -> Void)?
-    fileprivate var searchController: UISearchController!
-
-    fileprivate var results: [USIGNormalizadorAddress] = []
-    fileprivate var state: SearchState = .empty
-    fileprivate var hideForceNormalizationCell: Bool = true
-    fileprivate let disposeBag: DisposeBag = DisposeBag()
-    fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
-    fileprivate let addressSufix: String = ", CABA"
-
     // MARK: - Overrides
 
     override public func viewDidLoad() {
@@ -89,6 +140,7 @@ public class USIGNormalizadorController: UIViewController {
         setupNavigationBar()
         setupTableView()
         setupAPIProviders()
+        setupActions()
         setupRx()
         setupKeyboardNotifications()
         setInitialValue()
@@ -167,6 +219,15 @@ public class USIGNormalizadorController: UIViewController {
         
         let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
         let epokStream = epokAddressProvider.getStream(from: searchStream)
+        
+        for action in actions {
+            action.visible
+                .asObservable()
+                .subscribe(onNext: {[weak self] _ in
+                    self?.table.reloadSections(IndexSet(integer: 0), with: .none)
+                })
+                .addDisposableTo(disposeBag)
+        }
 
         table.rx
             .itemSelected
@@ -184,6 +245,18 @@ public class USIGNormalizadorController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+    }
+    
+    private func setupActions() {
+        let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
+
+        let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
+        let pinAction = PinAction(cell: pinCell, visible: showPin)
+        let noNormalizationCell = ActionCell()
+        let noNormalizationAction = NoNormalizationAction(cell: noNormalizationCell, visible: !forceNormalization)
+        
+        actions.append(pinAction)
+        actions.append(noNormalizationAction)
     }
 
     private func setInitialValue() {
@@ -218,18 +291,11 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 {
-            if !forceNormalization {
-                hideForceNormalizationCell = false
-            }
-            
-            return true
-        }
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 { return true }
         else  {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
-            hideForceNormalizationCell = true
 
             reloadTable()
 
@@ -264,8 +330,7 @@ public class USIGNormalizadorController: UIViewController {
         
         self.results = results.filter({ response in response.addresses != nil }).flatMap({ response in response.addresses! })
         
-        self.handleFirstSection()
-        self.reloadTable()
+        self.reloadTable(sections: [1])
     }
 
     private func handleError(_ error: Swift.Error) {
@@ -294,7 +359,6 @@ public class USIGNormalizadorController: UIViewController {
                     self.table.reloadSections(IndexSet(integer: 1), with: .none)
 
                     if !self.forceNormalization {
-                        self.hideForceNormalizationCell = true
                         self.table.reloadSections(IndexSet(integer: 0), with: .none)
                     }
 
@@ -308,57 +372,46 @@ public class USIGNormalizadorController: UIViewController {
 
             delegate?.didSelectValue(self, value: result)
         } else {
-            if showPin && indexPath.row == 0 {
+            let action = visibleActions[indexPath.row]
+            
+            if action is PinAction {
                 delegate?.didSelectPin(self)
             }
-            else if !forceNormalization, let cell = table.cellForRow(at: indexPath), let text = cell.textLabel?.text {
-                delegate?.didSelectUnnormalizedAddress(self, value: text)
+            else if action is NoNormalizationAction {
+                delegate?.didSelectUnnormalizedAddress(self, value: action.cell.text.string)
             }
         }
 
         close()
     }
-
-    private func handleFirstSection() {
-        var isEqual = false
-        var insertRow = false
-        var deleteRow = false
-
-        for address in results {
-            if !forceNormalization, let searchText = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace).uppercased(),
-                searchText == address.address.replacingOccurrences(of: addressSufix, with: "") {
-                isEqual = true
-                hideForceNormalizationCell = showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)
+    
+    private func reloadTable(sections: [Int]? = nil) {
+        DispatchQueue.main.async { [unowned self] in
+            if let indexes = sections {
+                self.table.reloadSections(IndexSet(indexes), with: .none)
             }
-        }
-
-        if !forceNormalization {
-            insertRow = !isEqual && !deleteRow && !hideForceNormalizationCell && (showPin ? (rowsInFirstSection == 1) : (rowsInFirstSection == 0 ))
-            deleteRow = (hideForceNormalizationCell && !isEqual) || (isEqual && (showPin ? (rowsInFirstSection == 2) : (rowsInFirstSection == 1)))
-        }
-
-        if insertRow || deleteRow {
-            DispatchQueue.main.async { [unowned self] in
-                self.table.reloadSections(IndexSet(integer: 1), with: .none)
-
-                if insertRow {
-                    self.hideForceNormalizationCell = false
-                    self.table.insertRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
+            
+            if !self.forceNormalization,
+                let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
+                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace),
+                text.characters.count > 2 {
+                let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
+                
+                
+                self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
+                
+                if !isEqual != self.actions[actionIndex].visible.value {
+                    self.actions[actionIndex].visible.value = !isEqual
                 }
                 else {
-                    self.hideForceNormalizationCell = true
-                    self.table.deleteRows(at: [IndexPath(row: self.rowsInFirstSection - 1, section: 0)], with: .automatic)
+                    self.table.reloadSections(IndexSet(integer: 0), with: .none) // If we didn't modify the action visibility, the observable won't fire
                 }
             }
-        }
-        else {
-            reloadTable()
-        }
-    }
-    
-    private func reloadTable() {
-        DispatchQueue.main.async {
-            self.table.reloadData()
+            
+            if sections == nil {
+                self.table.reloadSections(IndexSet(integersIn: 0..<self.table.numberOfSections), with: .none)
+            }
+            
             self.table.reloadEmptyDataSet()
         }
     }
@@ -387,7 +440,7 @@ public class USIGNormalizadorController: UIViewController {
 
 extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate {
     public func numberOfSections(in tableView: UITableView) -> Int { return 2 }
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return section == 1 ? results.count : rowsInFirstSection }
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return section == 1 ? results.count : visibleActions.count }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
@@ -405,20 +458,13 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             
             cell.imageView?.image = nil
         }
-        else if showPin && indexPath.row == 0 {
-            let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
-
-            cell.imageView?.image = pinImage
-            cell.imageView?.tintColor = pinColor
-            cell.textLabel?.attributedText = NSAttributedString(string: pinText, attributes: attributes)
-            cell.detailTextLabel?.attributedText = nil
-        }
-        else if !forceNormalization && !hideForceNormalizationCell, let text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace) {
-            let attributes = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)]
-
-            cell.imageView?.image = nil
-            cell.textLabel?.attributedText = NSAttributedString(string: text, attributes: attributes)
-            cell.detailTextLabel?.attributedText = nil
+        else {
+            let action = visibleActions[indexPath.row]
+            
+            cell.imageView?.image = action.cell.icon
+            cell.imageView?.tintColor = action.cell.iconTint
+            cell.textLabel?.attributedText = action.cell.text
+            cell.detailTextLabel?.attributedText = action.cell.detailText
         }
         
         return cell
@@ -478,10 +524,11 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
     }
 
     public func verticalOffset(forEmptyDataSet scrollView: UIScrollView!) -> CGFloat {
-        let halfTableHeight = (scrollView as! UITableView).tableFooterView!.frame.size.height / 2
-        let halfFirstSectionHeight = table.contentSize.height / 2
-
-        return CGFloat(halfTableHeight + halfFirstSectionHeight)
+        let table = scrollView as! UITableView
+        let tableHeight = table.tableFooterView!.frame.size.height
+        let actionsSectionHeight = table.intrinsicContentSize.height
+        
+        return CGFloat(tableHeight + actionsSectionHeight) / 2
     }
 }
 
