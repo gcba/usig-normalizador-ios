@@ -14,6 +14,7 @@
 		C01F09BC1F82CEAC00E422E8 /* USIGNormalizador.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */; };
 		C01F09BE1F82D43300E422E8 /* USIGNormalizadorDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */; };
 		C01F09C01F83E43300E422E8 /* USIGNormalizadorError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */; };
+		C031E4802007DF07004A1DB6 /* USIGNormalizadorAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C031E47F2007DF07004A1DB6 /* USIGNormalizadorAction.swift */; };
 		C046C7B21F85420B00050289 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C01ACADB1F84323900436606 /* Assets.xcassets */; };
 		C076C59D2003C5A50006975D /* USIGNormalizadorAddressManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */; };
 		D54747711F8C4CB900C9B761 /* USIGNormalizadorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */; };
@@ -94,6 +95,7 @@
 		C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizador.swift; sourceTree = "<group>"; };
 		C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorDelegate.swift; sourceTree = "<group>"; };
 		C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorError.swift; sourceTree = "<group>"; };
+		C031E47F2007DF07004A1DB6 /* USIGNormalizadorAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAction.swift; sourceTree = "<group>"; };
 		C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddressManager.swift; sourceTree = "<group>"; };
 		C85B0483E4623CE7AEA8E236 /* Pods_USIGNormalizadorTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_USIGNormalizadorTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorConfig.swift; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */,
 				D5A9780A2003581300D71676 /* USIGNormalizadorAddressProvider.swift */,
 				C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */,
+				C031E47F2007DF07004A1DB6 /* USIGNormalizadorAction.swift */,
 			);
 			path = USIGNormalizador;
 			sourceTree = "<group>";
@@ -631,6 +634,7 @@
 				C01F09C01F83E43300E422E8 /* USIGNormalizadorError.swift in Sources */,
 				C01F09BC1F82CEAC00E422E8 /* USIGNormalizador.swift in Sources */,
 				C076C59D2003C5A50006975D /* USIGNormalizadorAddressManager.swift in Sources */,
+				C031E4802007DF07004A1DB6 /* USIGNormalizadorAction.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
