@@ -184,6 +184,10 @@ internal class EpokProvider: USIGNormalizadorProvider {
             // Parse, check and make Normalization request
             .flatMap { result -> Observable<USIGNormalizadorResponse> in
                 guard let jsonArray = result as? [[String: Any]] else {
+                    if result is [Observable<USIGNormalizadorResponse>] {
+                        return result[0] as! Observable<USIGNormalizadorResponse>
+                    }
+                    
                     return Observable.just(
                         USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot cast EPOK GetObjectContentRequest json arrays", nil, nil))
                     )

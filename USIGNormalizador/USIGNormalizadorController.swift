@@ -322,6 +322,10 @@ public class USIGNormalizadorController: UIViewController {
                     
                     debugPrint("ERROR:", message)
                 case .other(let message, _, _):
+                    if result.source is USIGNormalizadorAPI.Type {
+                        self.state = .error
+                    }
+                    
                     debugPrint("ERROR:", message)
                 default: break
                 }
