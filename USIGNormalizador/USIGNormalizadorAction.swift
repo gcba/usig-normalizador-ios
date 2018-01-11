@@ -8,16 +8,15 @@
 
 import Foundation
 import RxSwift
-import Moya
 
-private protocol USIGNormalizadorAction {
+internal protocol USIGNormalizadorAction {
     var cell: ActionCell { get set }
     var visible: Variable<Bool> { get set }
     
     init(cell: ActionCell, visible: Bool)
 }
 
-private struct ActionCell {
+internal struct ActionCell {
     init() {
         self.icon = nil
         self.iconTint = nil
@@ -45,7 +44,7 @@ private struct ActionCell {
     var detailText: NSAttributedString?
 }
 
-private class PinAction: USIGNormalizadorAction {
+internal class PinAction: USIGNormalizadorAction {
     required init(cell: ActionCell, visible: Bool) {
         self.cell = cell
         self.visible = Variable<Bool>(visible)
@@ -55,7 +54,7 @@ private class PinAction: USIGNormalizadorAction {
     var visible: Variable<Bool>
 }
 
-private class NoNormalizationAction: USIGNormalizadorAction  {
+internal class NoNormalizationAction: USIGNormalizadorAction  {
     required init(cell: ActionCell, visible: Bool) {
         self.cell = cell
         self.visible = Variable<Bool>(visible)
