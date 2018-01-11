@@ -44,6 +44,22 @@ extension USIGNormalizadorProvider {
     }
 }
 
+internal struct NormalizadorProviderConfig {
+    let excluyendo: String?
+    let geocodificar: Bool
+    let max: Int
+}
+
+internal struct EpokProviderConfig {
+    let categoria: String?
+    let clase: String?
+    let boundingBox: [Double]?
+    let start: Int?
+    let limit: Int?
+    let total: Bool?
+    let normalization: NormalizadorProviderConfig
+}
+
 internal class NormalizadorProvider: USIGNormalizadorProvider {
     typealias API = USIGNormalizadorAPI
     typealias Config = NormalizadorProviderConfig
@@ -56,7 +72,6 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
     let config: Config
     let apiProvider: RxMoyaProvider<API>
     
-    // TODO: Abstract config --> Make config struct or repurpose existing class
     class func makeNormalizationRequest(from query: String, config: NormalizadorProviderConfig, apiProvider: RxMoyaProvider<USIGNormalizadorAPI>) -> Observable<Any> {
         let address = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let request = API.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
@@ -66,7 +81,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
             .mapJSON()
             .catchErrorJustReturn(
                 Observable.just(
-                    USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Parsing Normalization json", nil, nil))
+                    USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json", nil, nil))
                 )
         )
     }
@@ -112,17 +127,13 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .mapJSON()
             .catchErrorJustReturn(
-                Observable.just(
-                    USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK Search json", nil, nil))
-                )
+                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK Search json", nil, nil)))
         )
     }
     
     private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
         guard let id = object else {
-            return Observable.just(
-                USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("EPOK id for GetObjectContent is nil", nil, nil))
-            )
+            return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("EPOK id for GetObjectContent is nil", nil, nil)))
         }
         
         let request = USIGEpokAPI.getObjectContent(id: id)
@@ -131,9 +142,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .mapJSON()
             .catchErrorJustReturn(
-                Observable.just(
-                    USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Parsing EPOK GetObjectContent json", nil, nil))
-                )
+                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK GetObjectContent json", nil, nil)))
         )
     }
     
@@ -176,7 +185,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .flatMap { result -> Observable<USIGNormalizadorResponse> in
                 guard let jsonArray = result as? [[String: Any]] else {
                     return Observable.just(
-                        USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Casting EPOK GetObjectContentRequest json arrays", nil, nil))
+                        USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot cast EPOK GetObjectContentRequest json arrays", nil, nil))
                     )
                 }
                 
@@ -208,9 +217,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 }
                 
                 guard requests.count > 0 else {
-                    return Observable.just(
-                        USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("No EPOK object with a normalized address", nil, nil))
-                    )
+                    return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("No EPOK object has a normalized address", nil, nil)))
                 }
                 
                 // Parse, check and build response objects
@@ -246,20 +253,4 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     })
         }
     }
-}
-
-internal struct NormalizadorProviderConfig {
-    let excluyendo: String?
-    let geocodificar: Bool
-    let max: Int
-}
-
-internal struct EpokProviderConfig {
-    let categoria: String?
-    let clase: String?
-    let boundingBox: [Double]?
-    let start: Int?
-    let limit: Int?
-    let total: Bool?
-    let normalization: NormalizadorProviderConfig
 }
