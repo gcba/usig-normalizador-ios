@@ -393,10 +393,6 @@ public class USIGNormalizadorController: UIViewController {
     
     private func reloadTable(sections: [Int]? = nil) {
         DispatchQueue.main.async { [unowned self] in
-            if let indexes = sections {
-                self.table.reloadSections(IndexSet(indexes), with: .none)
-            }
-            
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
                 let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
@@ -408,12 +404,12 @@ public class USIGNormalizadorController: UIViewController {
                 if (!isEqual || !isEmpty) && (self.state != .empty) != self.actions[actionIndex].visible.value {
                     self.actions[actionIndex].visible.value = (!isEqual || !isEmpty) && (self.state != .empty)
                 }
-                else {
-                    self.table.reloadSections(IndexSet(integer: 0), with: .none) // If we didn't modify the action visibility, the observable won't fire
-                }
             }
             
-            if sections == nil {
+            if let indexes = sections {
+                self.table.reloadSections(IndexSet(indexes), with: .none)
+            }
+            else {
                 self.table.reloadSections(IndexSet(integersIn: 0..<self.table.numberOfSections), with: .none)
             }
             
