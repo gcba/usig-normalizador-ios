@@ -5,6 +5,8 @@
 //  Created by Rita Zerrizuela on 10/9/17.
 //  Copyright © 2017 GCBA. All rights reserved.
 //
+//  Icons by SimpleIcon https://creativecommons.org/licenses/by/3.0/
+//
 
 import Foundation
 
