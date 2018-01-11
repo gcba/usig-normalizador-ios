@@ -91,7 +91,8 @@ public class USIGNormalizador {
                 latitude: latitude,
                 longitude: longitude,
                 districtCode: (json?["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                label: json?["label"] as? String
+                label: json?["label"] as? String,
+                source: USIGNormalizadorAPI.self
             )
 
             completion(result, nil)
@@ -112,7 +113,8 @@ public class USIGNormalizador {
             latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
             longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
             districtCode: (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-            label: json["label"] as? String
+            label: json["label"] as? String,
+            source: json["source"] as? TargetType.Type ?? USIGNormalizadorAPI.self
         )
     }
 

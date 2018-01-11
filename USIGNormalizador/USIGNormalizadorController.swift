@@ -5,6 +5,8 @@
 //  Created by Rita Zerrizuela on 9/28/17.
 //  Copyright © 2017 GCBA. All rights reserved.
 //
+//  Icons by SimpleIcon https://creativecommons.org/licenses/by/3.0/
+//
 
 import Foundation
 import UIKit
@@ -17,6 +19,39 @@ fileprivate enum SearchState {
     case notFound
     case empty
     case error
+}
+
+fileprivate class USIGNormalizadorCell: UITableViewCell {
+    private let imageViewWidth: CGFloat = 19
+    private let imageViewPaddingLeft: CGFloat = 15
+
+    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        if let imageView = imageView, let textLabel = textLabel, let detailTextLabel = detailTextLabel {
+            imageView.frame = CGRect(origin: imageView.frame.origin, size: CGSize(width: imageViewWidth, height: imageView.frame.size.height))
+            imageView.contentMode = .scaleAspectFit
+            imageView.autoresizingMask = .flexibleHeight
+            
+            textLabel.frame = CGRect(
+                origin: CGPoint(x: imageView.frame.origin.x + imageView.frame.size.width + imageViewPaddingLeft, y: textLabel.frame.origin.y),
+                size: textLabel.frame.size
+            )
+            
+            detailTextLabel.frame = CGRect(
+                origin: CGPoint(x: imageView.frame.origin.x + imageView.frame.size.width + imageViewPaddingLeft, y: detailTextLabel.frame.origin.y),
+                size: detailTextLabel.frame.size
+            )
+        }
+    }
 }
 
 public class USIGNormalizadorController: UIViewController {
@@ -69,11 +104,27 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     fileprivate var pinImage: UIImage! {
-        return delegate?.pinImage(self) ?? USIGNormalizadorConfig.pinImageDefault?.withRenderingMode(.alwaysTemplate)
+        return delegate?.pinImage(self) ?? USIGNormalizadorConfig.pinImageDefault
     }
 
     fileprivate var pinText: String {
         return delegate?.pinText(self) ?? USIGNormalizadorConfig.pinTextDefault
+    }
+    
+    fileprivate var addressColor: UIColor {
+        return delegate?.addressColor(self) ?? USIGNormalizadorConfig.addressColorDefault
+    }
+    
+    fileprivate var addressImage: UIImage! {
+        return delegate?.addressImage(self) ?? USIGNormalizadorConfig.addressImageDefault
+    }
+    
+    fileprivate var placeColor: UIColor {
+        return delegate?.placeColor(self) ?? USIGNormalizadorConfig.placeColorDefault
+    }
+    
+    fileprivate var placeImage: UIImage! {
+        return delegate?.placeImage(self) ?? USIGNormalizadorConfig.placeImageDefault
     }
 
     // MARK: - Overrides
@@ -122,6 +173,9 @@ public class USIGNormalizadorController: UIViewController {
         table.tableFooterView = UIView(frame: .zero)
         table.emptyDataSetSource = self
         table.emptyDataSetDelegate = self
+        table.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
+        table.register(USIGNormalizadorCell.self, forCellReuseIdentifier: "Cell")
     }
     
     private func setupAPIProviders() {
@@ -397,9 +451,10 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
         if indexPath.section == 1 {
-            let address = results[indexPath.row].address.replacingOccurrences(of: addressSufix, with: "")
+            let result = results[indexPath.row]
+            let address = result.address.replacingOccurrences(of: addressSufix, with: "")
             
-            if let label = results[indexPath.row].label {
+            if let label = result.label {
                 cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
                 cell.detailTextLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text, fontSize: 12)
             } else {
@@ -407,16 +462,27 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
                 cell.detailTextLabel?.attributedText = nil
             }
             
-            cell.imageView?.image = nil
+            switch result.source {
+            case is USIGNormalizadorAPI.Type:
+                cell.imageView?.image = addressImage.withRenderingMode(.alwaysTemplate)
+                cell.imageView?.tintColor = addressColor
+            case is USIGEpokAPI.Type:
+                cell.imageView?.image = placeImage.withRenderingMode(.alwaysTemplate)
+                cell.imageView?.tintColor = placeColor
+            default:
+                break
+            }
         }
         else {
             let action = visibleActions[indexPath.row]
             
-            cell.imageView?.image = action.cell.icon
+            cell.imageView?.image = action.cell.icon?.withRenderingMode(.alwaysTemplate)
             cell.imageView?.tintColor = action.cell.iconTint
             cell.textLabel?.attributedText = action.cell.text
             cell.detailTextLabel?.attributedText = action.cell.detailText
         }
+        
+        cell.imageView?.transform = CGAffineTransform(scaleX: 0.65, y: 0.65)
         
         return cell
     }

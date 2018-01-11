@@ -14,6 +14,10 @@ public protocol USIGNormalizadorControllerDelegate {
     func pinColor(_ searchController: USIGNormalizadorController) -> UIColor
     func pinImage(_ searchController: USIGNormalizadorController) -> UIImage!
     func pinText(_ searchController: USIGNormalizadorController) -> String
+    func addressColor(_ searchController: USIGNormalizadorController) -> UIColor
+    func addressImage(_ searchController: USIGNormalizadorController) -> UIImage!
+    func placeColor(_ searchController: USIGNormalizadorController) -> UIColor
+    func placeImage(_ searchController: USIGNormalizadorController) -> UIImage!
     func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool
     func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool
     func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress)
@@ -28,6 +32,10 @@ extension USIGNormalizadorControllerDelegate {
     public func pinColor(_ searchController: USIGNormalizadorController) -> UIColor { return USIGNormalizadorConfig.pinColorDefault }
     public func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! { return USIGNormalizadorConfig.pinImageDefault }
     public func pinText(_ searchController: USIGNormalizadorController) -> String { return USIGNormalizadorConfig.pinTextDefault }
+    public func addressColor(_ searchController: USIGNormalizadorController) -> UIColor { return USIGNormalizadorConfig.addressColorDefault }
+    public func addressImage(_ searchController: USIGNormalizadorController) -> UIImage! { return USIGNormalizadorConfig.addressImageDefault }
+    public func placeColor(_ searchController: USIGNormalizadorController) -> UIColor { return USIGNormalizadorConfig.placeColorDefault }
+    public func placeImage(_ searchController: USIGNormalizadorController) -> UIImage! { return USIGNormalizadorConfig.placeImageDefault }
     public func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldShowPinDefault }
     public func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldForceNormalizationDefault }
     public func didSelectPin(_ searchController: USIGNormalizadorController) {}

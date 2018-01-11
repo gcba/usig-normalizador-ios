@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Moya
 
 public struct USIGNormalizadorAddress {
     public let address: String
@@ -18,6 +19,7 @@ public struct USIGNormalizadorAddress {
     public let longitude: Double?
     public let districtCode: String?
     public let label: String?
+    internal let source: TargetType.Type
 }
 
 extension USIGNormalizadorAddress: Equatable {

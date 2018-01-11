@@ -36,8 +36,16 @@ extension USIGNormalizadorProvider {
             }
         }
         
-        guard let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+        guard var addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
             return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error", nil, nil))
+        }
+        
+        addresses = addresses.map { item in
+            var mutableItem = item
+            
+            mutableItem["source"] = API.self
+            
+            return mutableItem
         }
         
         return USIGNormalizadorResponse(source: API.self, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
