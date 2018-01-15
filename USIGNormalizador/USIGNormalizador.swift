@@ -105,10 +105,4 @@ public class USIGNormalizador {
             completion(USIGNormalizadorAddress(from: json), nil)
         }
     }
-
-    // MARK: - Utilities
-
-    internal class func getAddresses(_ jsonArray: Array<[String: Any]>) -> [USIGNormalizadorAddress] {
-        return jsonArray.map { item in USIGNormalizadorAddress(from: item) }
-    }
 }

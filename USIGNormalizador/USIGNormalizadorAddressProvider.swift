@@ -48,7 +48,7 @@ extension USIGNormalizadorProvider {
             return mutableItem
         }
         
-        return USIGNormalizadorResponse(source: API.self, addresses: USIGNormalizador.getAddresses(addresses), error: nil)
+        return USIGNormalizadorResponse(source: API.self, addresses: addresses.map { item in USIGNormalizadorAddress(from: item) }, error: nil)
     }
 }
 
