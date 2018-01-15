@@ -417,9 +417,9 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     func close() {
-        if self.navigationController?.viewControllers[0] === self {
-            searchController.dismiss(animated: true) { [unowned self] in
-                self.dismiss(animated: true) {
+        if navigationController?.viewControllers[0] === self {
+            dismiss(animated: true) { [unowned self] in
+                self.searchController.dismiss(animated: true) {
                     self.onDismissCallback?(self)
                 }
             }
@@ -430,8 +430,8 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         else {
-            self.onDismissCallback?(self)
-            self.navigationController?.popViewController(animated: true)
+            onDismissCallback?(self)
+            navigationController?.popViewController(animated: true)
         }
     }
 }
