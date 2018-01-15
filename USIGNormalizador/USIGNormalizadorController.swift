@@ -48,7 +48,6 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let minCharactersNormalization: Int = 3
     fileprivate let minCharactersEpok: Int = 4
-    fileprivate let addressSufix: String = ", CABA"
     
     fileprivate var visibleActions: [USIGNormalizadorAction] {
         return actions.filter { action in action.visible.value }
@@ -135,7 +134,10 @@ public class USIGNormalizadorController: UIViewController {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.dimsBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.text = value?.address.replacingOccurrences(of: addressSufix, with: "")
+        
+        if value != nil {
+            searchController.searchBar.text = value!.address.removeSuffix(from: value!)
+        }
 
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
@@ -251,7 +253,7 @@ public class USIGNormalizadorController: UIViewController {
 
     private func setInitialValue() {
         if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
-            searchController.searchBar.textField?.rx.value.onNext(initialValue.replacingOccurrences(of: addressSufix, with: ""))
+            searchController.searchBar.textField?.rx.value.onNext(initialValue.components(separatedBy: ",").dropLast().joined(separator: ","))
         }
     }
     
@@ -388,7 +390,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
 
-        close()
+        close(force: true)
     }
     
     private func reloadTable(sections: [Int]? = nil) {
@@ -405,7 +407,7 @@ public class USIGNormalizadorController: UIViewController {
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
                 let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
-                let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
+                let isEqual = self.results.first(where: { result in result.address.removeSuffix(from: result) == text.uppercased() }) != nil
                 let isShort = text.characters.count < self.minCharactersNormalization
                 
                 if !isShort {
@@ -417,10 +419,15 @@ public class USIGNormalizadorController: UIViewController {
         }
     }
 
-    func close() {
+    func close(force: Bool = false) {
         if navigationController?.viewControllers[0] === self {
-            dismiss(animated: true) { [unowned self] in
-                self.searchController.dismiss(animated: true) {
+            self.searchController.dismiss(animated: true) {
+                if force {
+                    self.dismiss(animated: true) {
+                        self.onDismissCallback?(self)
+                    }
+                }
+                else {
                     self.onDismissCallback?(self)
                 }
             }
@@ -448,7 +455,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         
         if indexPath.section == contentSection {
             let result = results[indexPath.row]
-            let address = result.address.replacingOccurrences(of: addressSufix, with: "")
+            let address = result.address.removeSuffix(from: result)
             
             if let label = result.label {
                 cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
@@ -566,6 +573,10 @@ private extension String {
         let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
 
         return highlight(range: NSRange(location: start, length: needle.characters.count), fontSize: fontSize)
+    }
+    
+    func removeSuffix(from address: USIGNormalizadorAddress) -> String {
+        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
     }
 }
 

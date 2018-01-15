@@ -102,40 +102,13 @@ public class USIGNormalizador {
                     return
             }
 
-            completion(USIGNormalizador.getAddress(json), nil)
+            completion(USIGNormalizadorAddress(from: json), nil)
         }
     }
 
     // MARK: - Utilities
 
-    internal class func getAddress(_ json: [String: Any]) -> USIGNormalizadorAddress {
-        let coordinates = json["coordenadas"] as? [String: Any]
-
-        return USIGNormalizadorAddress(
-            address: (json["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
-            street: (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-            number: json["altura"] as? Int,
-            type: (json["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines),
-            corner: (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-            latitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "y"),
-            longitude: USIGNormalizador.parseCoordinate(fromDict: coordinates, key: "x"),
-            districtCode: (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
-            label: json["label"] as? String,
-            source: json["source"] as? TargetType.Type ?? USIGNormalizadorAPI.self
-        )
-    }
-
     internal class func getAddresses(_ jsonArray: Array<[String: Any]>) -> [USIGNormalizadorAddress] {
-        return jsonArray.map { item in USIGNormalizador.getAddress(item) }
-    }
-
-    internal class func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
-        guard let coordinatesDict = dict else { return nil }
-
-        if let coordinateString = coordinatesDict[key] as? String {
-            return Double(coordinateString)
-        }
-
-        return coordinatesDict[key] as? Double
+        return jsonArray.map { item in USIGNormalizadorAddress(from: item) }
     }
 }
