@@ -107,9 +107,9 @@ public class USIGNormalizadorController: UIViewController {
         setupTableView()
         setupAPIProviders()
         setupActions()
+        setInitialValue()
         setupRx()
         setupKeyboardNotifications()
-        setInitialValue()
 
         definesPresentationContext = true
     }
@@ -229,7 +229,7 @@ public class USIGNormalizadorController: UIViewController {
 
     private func setInitialValue() {
         if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
-            searchController.searchBar.textField?.text = initialValue.replacingOccurrences(of: addressSufix, with: "")
+            searchController.searchBar.textField?.rx.value.onNext(initialValue.replacingOccurrences(of: addressSufix, with: ""))
         }
     }
     
