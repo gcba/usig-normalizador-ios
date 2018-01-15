@@ -24,20 +24,20 @@ internal protocol USIGNormalizadorProvider {
 extension USIGNormalizadorProvider {
     func getResponse(from result: Any) -> USIGNormalizadorResponse {
         guard let json = result as? [String: Any] else {
-            return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error", nil, nil))
+            return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error"))
         }
         
         if let message = json["errorMessage"] as? String {
             if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .streetNotFound("Street not found", nil, nil))
+                return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .streetNotFound("Street not found"))
             }
             else {
-                return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .service("Unknown service error", nil, nil))
+                return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .service("Unknown service error"))
             }
         }
         
         guard var addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-            return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error", nil, nil))
+            return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error"))
         }
         
         addresses = addresses.map { item in
@@ -56,6 +56,7 @@ internal struct NormalizadorProviderConfig {
     let excluyendo: String?
     let geocodificar: Bool
     let max: Int
+    let minCharacters: Int
 }
 
 internal struct EpokProviderConfig {
@@ -65,6 +66,7 @@ internal struct EpokProviderConfig {
     let start: Int?
     let limit: Int?
     let total: Bool?
+    let minCharacters: Int
     let normalization: NormalizadorProviderConfig
 }
 
@@ -80,8 +82,12 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
     let config: Config
     let apiProvider: RxMoyaProvider<API>
     
-    class func makeNormalizationRequest(from query: String, config: NormalizadorProviderConfig, apiProvider: RxMoyaProvider<USIGNormalizadorAPI>) -> Observable<Any> {
-        let address = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    class func makeNormalizationRequest(from query: String?, config: NormalizadorProviderConfig, apiProvider: RxMoyaProvider<USIGNormalizadorAPI>) -> Observable<Any> {
+        guard let text = query else {
+            return Observable.just(USIGNormalizadorResponse(source: API.self, addresses: [], error: nil))
+        }
+        
+        let address = text.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         let request = API.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
         
         return apiProvider
@@ -89,7 +95,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
             .mapJSON()
             .catchErrorJustReturn(
                 Observable.just(
-                    USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json", nil, nil))
+                    USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json"))
                 )
         )
     }
@@ -101,6 +107,8 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
         let getResponse = self.getResponse
         
         return searchStream
+            // Filter by chars
+            .flatMap({ query -> Observable<String?> in query.characters.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
             .flatMap { query in NormalizadorProvider.makeNormalizationRequest(from: query, config: config, apiProvider: apiProvider) }
             .flatMap { item in Observable.from(optional: [getResponse(item)]) }
     }
@@ -120,9 +128,13 @@ internal class EpokProvider: USIGNormalizadorProvider {
     let apiProvider: RxMoyaProvider<API>
     let normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>
     
-    private func makeEpokSearchRequest(_ query: String) -> Observable<Any> {
+    private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
+        guard let text = query else {
+            return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: [], error: nil))
+        }
+        
         let request = USIGEpokAPI.buscar(
-            texto: query,
+            texto: text,
             categoria: config.categoria,
             clase: config.clase,
             boundingBox: config.boundingBox,
@@ -135,13 +147,13 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .mapJSON()
             .catchErrorJustReturn(
-                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK Search json", nil, nil)))
+                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK Search json")))
         )
     }
     
     private func makeEpokGetObjectContentRequest(_ object: String?) -> Observable<Any> {
         guard let id = object else {
-            return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("EPOK id for GetObjectContent is nil", nil, nil)))
+            return Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("EPOK id for GetObjectContent is nil")))
         }
         
         let request = USIGEpokAPI.getObjectContent(id: id)
@@ -150,7 +162,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .mapJSON()
             .catchErrorJustReturn(
-                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK GetObjectContent json", nil, nil)))
+                Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK GetObjectContent json")))
         )
     }
     
@@ -166,6 +178,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
     
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]> {
         // Avoid capturing self
+        let config = self.config
         let normalizationConfig = self.config.normalization
         let normalizationAPIProvider = self.normalizationAPIProvider
         let filterNormalizationResults = self.filterNormalizationResults
@@ -173,7 +186,9 @@ internal class EpokProvider: USIGNormalizadorProvider {
         let getResponse = self.getResponse
         
         return searchStream
-             // Make EPOK Search request
+            // Filter by chars
+            .flatMap({ query -> Observable<String?> in query.characters.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
+            // Make EPOK Search request
             .flatMap(makeEpokSearchRequest)
             //  Parse, check and make EPOK GetObjectContent request
             .flatMap { result -> Observable<[Any]> in
@@ -195,7 +210,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     }
                     
                     return Observable.just(
-                        [USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot cast EPOK GetObjectContentRequest json arrays", nil, nil))]
+                        [USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot cast EPOK GetObjectContentRequest json arrays"))]
                     )
                 }
                 

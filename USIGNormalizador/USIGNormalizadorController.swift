@@ -46,7 +46,8 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
-    fileprivate let minimumCharacters: Int = 3
+    fileprivate let minCharactersNormalization: Int = 3
+    fileprivate let minCharactersEpok: Int = 4
     fileprivate let addressSufix: String = ", CABA"
     
     fileprivate var visibleActions: [USIGNormalizadorAction] {
@@ -167,9 +168,20 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setupRx() {
-        let normalizationConfig = NormalizadorProviderConfig(excluyendo: exclusions, geocodificar: true, max: maxResults)
+        let normalizationConfig = NormalizadorProviderConfig(excluyendo: exclusions, geocodificar: true, max: maxResults, minCharacters: minCharactersNormalization)
         let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
-        let epokConfig = EpokProviderConfig(categoria: nil, clase: nil, boundingBox: nil, start: nil, limit: maxResults, total: false, normalization: normalizationConfig)
+        
+        let epokConfig = EpokProviderConfig(
+            categoria: nil,
+            clase: nil,
+            boundingBox: nil,
+            start: nil,
+            limit: maxResults,
+            total: false,
+            minCharacters: minCharactersEpok,
+            normalization: normalizationConfig
+        )
+        
         let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
         
         let searchStream = searchController.searchBar.rx
@@ -267,7 +279,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count >= minimumCharacters { return true }
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count >= minCharactersNormalization { return true }
         else  {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
@@ -297,13 +309,13 @@ public class USIGNormalizadorController: UIViewController {
             for result in results {
                 if let error = result.error {
                     switch error {
-                    case .streetNotFound(_, _, _):
+                    case .streetNotFound(_):
                         self.state = .notFound
                             
                         reloadTable()
                             
                         return
-                    case .service(let message, _, _):
+                    case .service(let message):
                         debugPrint("ERROR: \(message)")
                         
                         self.state = .error
@@ -311,7 +323,7 @@ public class USIGNormalizadorController: UIViewController {
                         reloadTable()
                             
                         return
-                    case .other(let message, _, _):
+                    case .other(let message):
                         debugPrint("ERROR: \(message)")
                         
                         self.state = .error
@@ -326,7 +338,7 @@ public class USIGNormalizadorController: UIViewController {
         }
         
         
-        self.results = filteredResults.flatMap({ response in response.addresses! })
+        self.results = Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults))
         
         reloadTable(sections: [contentSection])
     }
@@ -384,7 +396,7 @@ public class USIGNormalizadorController: UIViewController {
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
                 let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
                 let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
-                let isShort = text.characters.count < self.minimumCharacters
+                let isShort = text.characters.count < self.minCharactersNormalization
                 
                 if !isShort {
                     self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])

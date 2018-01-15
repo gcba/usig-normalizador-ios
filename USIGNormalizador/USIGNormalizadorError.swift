@@ -9,37 +9,19 @@
 import Foundation
 
 public enum USIGNormalizadorError: Error {
-    case streetNotFound(String, Int?, URLResponse?)
-    case notInRange(String, Int?, URLResponse?)
-    case service(String, Int?, URLResponse?)
-    case other(String, Int?, URLResponse?)
+    case streetNotFound(String)
+    case notInRange(String)
+    case service(String)
+    case other(String)
 }
 
 public extension USIGNormalizadorError {
     public var message: String {
         switch self {
-        case .streetNotFound(let description, _, _): return description
-        case .notInRange(let description, _, _): return description
-        case .service(let description, _, _): return description
-        case .other(let description, _, _): return description
-        }
-    }
-    
-    public var statusCode: Int? {
-        switch self {
-        case .streetNotFound(_, let status, _): return status
-        case .notInRange(_, let status, _): return status
-        case .service(_, let status, _): return status
-        case .other(_, let status, _): return status
-        }
-    }
-    
-    public var response: URLResponse? {
-        switch self {
-        case .streetNotFound(_, _, let res): return res
-        case .notInRange(_, _, let res): return res
-        case .service(_, _, let res): return res
-        case .other(_, _, let res): return res
+        case .streetNotFound(let description): return description
+        case .notInRange(let description): return description
+        case .service(let description): return description
+        case .other(let description): return description
         }
     }
 }
