@@ -116,9 +116,9 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result!.number == 750)
             XCTAssert(result!.corner == nil)
             XCTAssert(result!.latitude != nil)
-            XCTAssert(result!.latitude == -34.627847)
+            XCTAssert(result!.latitude == -34.627818571496498)
             XCTAssert(result!.longitude != nil)
-            XCTAssert(result!.longitude == -58.365986)
+            XCTAssert(result!.longitude == -58.3659754141202)
             XCTAssert(result!.districtCode != nil)
             XCTAssert(result!.districtCode == "caba")
             
