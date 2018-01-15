@@ -27,7 +27,7 @@ public struct USIGNormalizadorAddress {
         let coordinates = json["coordenadas"] as? [String: Any]
         
         self.address = (json["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        self.street = (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines)
+        self.street = (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         self.number = json["altura"] as? Int
         self.type = (json["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines)
         self.corner = (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
