@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     fileprivate let locationManager = CLLocationManager()
     fileprivate var showPin = true
     fileprivate var forceNormalization = true
+    fileprivate var includePlaces = true
 
     // MARK: - Outlets
 
@@ -25,6 +26,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var geoButton: UIButton!
     @IBOutlet weak var pinSwitch: UISwitch!
     @IBOutlet weak var mandatorySwitch: UISwitch!
+    @IBOutlet weak var placesSwitch: UISwitch!
 
     // MARK: - Actions
 
@@ -34,6 +36,10 @@ class ViewController: UIViewController {
 
     @IBAction func mandatorySwitchValueChanged(_ sender: Any) {
         forceNormalization = mandatorySwitch.isOn
+    }
+    
+    @IBAction func placesSwitchValueChanged(_ sender: Any) {
+        includePlaces = placesSwitch.isOn
     }
 
     @IBAction func searchButtonTapped(sender: UIButton) {
@@ -81,6 +87,7 @@ class ViewController: UIViewController {
 extension ViewController: USIGNormalizadorControllerDelegate {
     func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return showPin }
     func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return forceNormalization }
+    func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool { return includePlaces }
 
     func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress) {
         currentAddress = value
