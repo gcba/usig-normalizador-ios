@@ -7,9 +7,11 @@
 //
 
 import Foundation
+import RxSwift
 import Moya
 
 public class USIGNormalizador {
+    private static let disposeBag: DisposeBag = DisposeBag()
 
     // MARK: - Public API
 
@@ -23,44 +25,60 @@ public class USIGNormalizador {
 
     public class func search(query: String, excluding: String? = USIGNormalizadorExclusions.AMBA.rawValue, maxResults: Int = 10,
         completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
-        let request = USIGNormalizadorAPI.normalizar(direccion: query, excluyendo: excluding, geocodificar: true, max: maxResults)
+        let normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>()
+        let epokAPIProvider = RxMoyaProvider<USIGEpokAPI>()
         
-        api.request(request) { response in
-            let defaultError = "Error calling USIG API"
-            
-            if let error = response.error, let errorMessage = error.errorDescription {
-                completion(nil, USIGNormalizadorError.other(errorMessage, response.value?.statusCode, response.value?.response))
-                
-                return
-            }
-            
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: false) as? [String: Any] else {
-                completion(nil, USIGNormalizadorError.other(defaultError, response.value?.statusCode, response.value?.response))
-                
-                return
-            }
-            
-            if let message = json?["errorMessage"] as? String {
-                if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
-                    completion(nil, USIGNormalizadorError.streetNotFound("Street not found", response.value?.statusCode, response.value?.response))
-                    
-                    return
+        let normalizationConfig = NormalizadorProviderConfig(excluyendo: excluding, geocodificar: true, max: maxResults, minCharacters: 0)
+        let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
+        
+        let epokConfig = EpokProviderConfig(
+            categoria: nil,
+            clase: nil,
+            boundingBox: nil,
+            start: nil,
+            limit: maxResults,
+            total: false,
+            minCharacters: 0,
+            normalization: normalizationConfig
+        )
+        
+        let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
+        
+        let searchStream = Observable.just(query)
+        let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
+        let epokStream = epokAddressProvider.getStream(from: searchStream)
+        
+        AddressManager()
+            .getStreams(from: [normalizationStream, epokStream])
+            .observeOn(ConcurrentMainScheduler.instance)
+            .subscribe(onNext: { results in
+                let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+
+                if filteredResults.count == 0 {
+                    for result in results {
+                        if let error = result.error {
+                            switch error {
+                            case .streetNotFound(let message):
+                                completion(nil, USIGNormalizadorError.streetNotFound(message))
+                                
+                                return
+                            case .service(let message):
+                                completion(nil, USIGNormalizadorError.service(message))
+                                
+                                return
+                            case .other(let message):
+                                completion(nil, USIGNormalizadorError.other(message))
+                                
+                                return
+                            default: break
+                            }
+                        }
+                    }
                 }
-                else {
-                    completion(nil, USIGNormalizadorError.service("\(message)", response.value?.statusCode, response.value?.response))
-                    
-                    return
-                }
-            }
-            
-            guard let addresses = json?["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
-                completion(nil, USIGNormalizadorError.other(defaultError, response.value?.statusCode, response.value?.response))
                 
-                return
-            }
-            
-            completion(USIGNormalizador.getAddresses(addresses), nil)
-        }
+                completion(Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults)), nil)
+            })
+            .addDisposableTo(disposeBag)
     }
 
     public class func location(latitude: Double, longitude: Double, completion: @escaping (USIGNormalizadorAddress?, USIGNormalizadorError?) -> Void) {
@@ -68,7 +86,7 @@ public class USIGNormalizador {
 
         api.request(request) { response in
             if let error = response.error, let errorMessage = error.errorDescription {
-                completion(nil, USIGNormalizadorError.other(errorMessage, response.value?.statusCode, response.value?.response))
+                completion(nil, USIGNormalizadorError.other(errorMessage))
 
                 return
             }
@@ -77,7 +95,7 @@ public class USIGNormalizador {
                 let address = json?["direccion"] as? String,
                 let street = json?["nombre_calle"] as? String,
                 let type = json?["tipo"] as? String else {
-                    completion(nil, USIGNormalizadorError.notInRange("Location (\(latitude), \(longitude)) not in range", response.value?.statusCode, response.value?.response))
+                    completion(nil, USIGNormalizadorError.notInRange("Location (\(latitude), \(longitude)) not in range"))
 
                     return
             }
