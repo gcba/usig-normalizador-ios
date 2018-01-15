@@ -32,8 +32,8 @@ public struct USIGNormalizadorAddress {
         self.type = (json["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines)
         self.corner = (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.districtCode = (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.districtName = (json["nombre_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.localityName = (json["nombre_localidad"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.districtName = (json["nombre_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        self.localityName = (json["nombre_localidad"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         self.label = json["label"] as? String
         self.source = json["source"] as? TargetType.Type ?? USIGNormalizadorAPI.self
         
