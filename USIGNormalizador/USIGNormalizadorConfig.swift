@@ -24,4 +24,5 @@ class USIGNormalizadorConfig {
     static let placeImageDefault: UIImage! = UIImage(named: "placeSolid", in: Bundle(for: USIGNormalizador.self), compatibleWith: nil)
     static let shouldShowPinDefault: Bool = false
     static let shouldForceNormalizationDefault: Bool = true
+    static let shouldIncludePlacesDefault: Bool = true
 }

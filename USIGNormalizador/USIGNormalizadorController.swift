@@ -54,20 +54,24 @@ public class USIGNormalizadorController: UIViewController {
         return actions.filter { action in action.visible.value }
     }
 
-    fileprivate var exclusions: String {
-        return delegate?.exclude(self) ?? USIGNormalizadorConfig.exclusionsDefault
-    }
-
-    fileprivate var maxResults: Int {
-        return delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : USIGNormalizadorConfig.maxResultsDefault
-    }
-
     fileprivate var showPin: Bool {
         return delegate?.shouldShowPin(self) ?? USIGNormalizadorConfig.shouldShowPinDefault
     }
 
     fileprivate var forceNormalization: Bool {
         return delegate?.shouldForceNormalization(self) ?? USIGNormalizadorConfig.shouldForceNormalizationDefault
+    }
+    
+    fileprivate var includePlaces: Bool {
+        return delegate?.shouldIncludePlaces(self) ?? USIGNormalizadorConfig.shouldIncludePlacesDefault
+    }
+    
+    fileprivate var exclusions: String {
+        return delegate?.exclude(self) ?? USIGNormalizadorConfig.exclusionsDefault
+    }
+    
+    fileprivate var maxResults: Int {
+        return delegate != nil && delegate!.maxResults(self) > 0 ? delegate!.maxResults(self) : USIGNormalizadorConfig.maxResultsDefault
     }
 
     fileprivate var pinImage: UIImage! {
@@ -171,19 +175,6 @@ public class USIGNormalizadorController: UIViewController {
         let normalizationConfig = NormalizadorProviderConfig(excluyendo: exclusions, geocodificar: true, max: maxResults, minCharacters: minCharactersNormalization)
         let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
         
-        let epokConfig = EpokProviderConfig(
-            categoria: nil,
-            clase: nil,
-            boundingBox: nil,
-            start: nil,
-            limit: maxResults,
-            total: false,
-            minCharacters: minCharactersEpok,
-            normalization: normalizationConfig
-        )
-        
-        let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
-        
         let searchStream = searchController.searchBar.rx
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
@@ -200,7 +191,25 @@ public class USIGNormalizadorController: UIViewController {
             })
         
         let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
-        let epokStream = epokAddressProvider.getStream(from: searchStream)
+        var sources: [Observable<[USIGNormalizadorResponse]>] = [normalizationStream]
+        
+        if includePlaces {
+            let epokConfig = EpokProviderConfig(
+                categoria: nil,
+                clase: nil,
+                boundingBox: nil,
+                start: nil,
+                limit: maxResults,
+                total: false,
+                minCharacters: minCharactersEpok,
+                normalization: normalizationConfig
+            )
+            
+            let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: epokAPIProvider, normalizationAPIProvider: normalizationAPIProvider)
+            let epokStream = epokAddressProvider.getStream(from: searchStream)
+            
+            sources.append(epokStream)
+        }
         
         for action in actions {
             action.visible
@@ -215,7 +224,7 @@ public class USIGNormalizadorController: UIViewController {
             .addDisposableTo(disposeBag)
         
         AddressManager()
-            .getStreams(from: [normalizationStream, epokStream])
+            .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: handleResults)
             .addDisposableTo(disposeBag)
