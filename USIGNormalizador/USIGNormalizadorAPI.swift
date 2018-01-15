@@ -132,7 +132,7 @@ extension USIGEpokAPI: TargetType {
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
 
-// MARK: - USIGResponse
+// MARK: - USIG Response
 
 internal struct USIGNormalizadorResponse {
     let source: TargetType.Type

@@ -21,39 +21,6 @@ fileprivate enum SearchState {
     case error
 }
 
-fileprivate class USIGNormalizadorCell: UITableViewCell {
-    private let imageViewWidth: CGFloat = 19
-    private let imageViewPaddingLeft: CGFloat = 15
-
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        if let imageView = imageView, let textLabel = textLabel, let detailTextLabel = detailTextLabel {
-            imageView.frame = CGRect(origin: imageView.frame.origin, size: CGSize(width: imageViewWidth, height: imageView.frame.size.height))
-            imageView.contentMode = .scaleAspectFit
-            imageView.autoresizingMask = .flexibleHeight
-            
-            textLabel.frame = CGRect(
-                origin: CGPoint(x: imageView.frame.origin.x + imageView.frame.size.width + imageViewPaddingLeft, y: textLabel.frame.origin.y),
-                size: textLabel.frame.size
-            )
-            
-            detailTextLabel.frame = CGRect(
-                origin: CGPoint(x: imageView.frame.origin.x + imageView.frame.size.width + imageViewPaddingLeft, y: detailTextLabel.frame.origin.y),
-                size: detailTextLabel.frame.size
-            )
-        }
-    }
-}
-
 public class USIGNormalizadorController: UIViewController {
 
     // MARK: - Outlets
@@ -72,11 +39,14 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     
-    fileprivate var results: [USIGNormalizadorAddress] = []
-    fileprivate var state: SearchState = .empty
     fileprivate var actions: [USIGNormalizadorAction] = []
+    fileprivate var results: [USIGNormalizadorAddress] = []
+    fileprivate var actionsSection: Int = 0
+    fileprivate var contentSection: Int = 1
+    fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
     fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
+    fileprivate let minimumCharacters: Int = 3
     fileprivate let addressSufix: String = ", CABA"
     
     fileprivate var visibleActions: [USIGNormalizadorAction] {
@@ -99,32 +69,32 @@ public class USIGNormalizadorController: UIViewController {
         return delegate?.shouldForceNormalization(self) ?? USIGNormalizadorConfig.shouldForceNormalizationDefault
     }
 
-    fileprivate var pinColor: UIColor {
-        return delegate?.pinColor(self) ?? USIGNormalizadorConfig.pinColorDefault
-    }
-
     fileprivate var pinImage: UIImage! {
         return delegate?.pinImage(self) ?? USIGNormalizadorConfig.pinImageDefault
+    }
+    
+    fileprivate var pinColor: UIColor {
+        return delegate?.pinColor(self) ?? USIGNormalizadorConfig.pinColorDefault
     }
 
     fileprivate var pinText: String {
         return delegate?.pinText(self) ?? USIGNormalizadorConfig.pinTextDefault
     }
     
-    fileprivate var addressColor: UIColor {
-        return delegate?.addressColor(self) ?? USIGNormalizadorConfig.addressColorDefault
-    }
-    
     fileprivate var addressImage: UIImage! {
         return delegate?.addressImage(self) ?? USIGNormalizadorConfig.addressImageDefault
     }
     
-    fileprivate var placeColor: UIColor {
-        return delegate?.placeColor(self) ?? USIGNormalizadorConfig.placeColorDefault
+    fileprivate var addressColor: UIColor {
+        return delegate?.addressColor(self) ?? USIGNormalizadorConfig.addressColorDefault
     }
     
     fileprivate var placeImage: UIImage! {
         return delegate?.placeImage(self) ?? USIGNormalizadorConfig.placeImageDefault
+    }
+    
+    fileprivate var placeColor: UIColor {
+        return delegate?.placeColor(self) ?? USIGNormalizadorConfig.placeColorDefault
     }
 
     // MARK: - Overrides
@@ -205,6 +175,7 @@ public class USIGNormalizadorController: UIViewController {
         let searchStream = searchController.searchBar.rx
             .text
             .debounce(0.5, scheduler: MainScheduler.instance)
+            .distinctUntilChanged(filterSearch)
             .filter(filterSearch)
             .flatMapLatest { query in Observable.from(optional: query) }
             .shareReplayLatestWhileConnected()
@@ -222,9 +193,7 @@ public class USIGNormalizadorController: UIViewController {
         for action in actions {
             action.visible
                 .asObservable()
-                .subscribe(onNext: {[weak self] _ in
-                    self?.table.reloadSections(IndexSet(integer: 0), with: .none)
-                })
+                .subscribe(onNext: {[unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
                 .addDisposableTo(disposeBag)
         }
 
@@ -236,7 +205,7 @@ public class USIGNormalizadorController: UIViewController {
         AddressManager()
             .getStreams(from: [normalizationStream, epokStream])
             .observeOn(ConcurrentMainScheduler.instance)
-            .subscribe(onNext: handleResults, onError: handleError)
+            .subscribe(onNext: handleResults)
             .addDisposableTo(disposeBag)
     }
     
@@ -270,14 +239,14 @@ public class USIGNormalizadorController: UIViewController {
         guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
             let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
         
-        DispatchQueue.main.async {
-            self.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
+        DispatchQueue.main.async { [weak self] in
+            self?.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
         }
     }
     
     @objc private func keyboardWillHide(_ notification: Notification) {
-        DispatchQueue.main.async {
-            self.tableBottomConstraint.constant = 0
+        DispatchQueue.main.async { [weak self] in
+            self?.tableBottomConstraint.constant = 0
         }
     }
 
@@ -288,9 +257,17 @@ public class USIGNormalizadorController: UIViewController {
             fatalError("USIGNormalizadorController delegate is not implemented.")
         }
     }
+    
+    private func filterSearch(_ previousQuery: String?, _ nextQuery: String?) -> Bool {
+        if let previous = previousQuery, let next = nextQuery {
+            return previous.trimmingCharacters(in: .whitespacesAndNewlines) == next.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        return false
+    }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count > 2 { return true }
+        if let text = value, text.trimmingCharacters(in: whitespace).characters.count >= minimumCharacters { return true }
         else  {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
@@ -298,63 +275,64 @@ public class USIGNormalizadorController: UIViewController {
             searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
             state = .empty
             results = []
-
+            
             reloadTable()
-
+            
             return false
         }
     }
     
     private func handleResults(_ results: [USIGNormalizadorResponse]) {
+        let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+        
         self.results = []
         
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [unowned self] in
             if self.searchController.searchBar.isLoading {
                 self.searchController.searchBar.isLoading = false
             }
         }
         
-        for result in results {
-            if let error = result.error {
-                switch error {
-                case .streetNotFound(_, _, _):
-                    self.state = .notFound
-                case .service(let message, _, _):
-                    self.state = .error
-                    
-                    debugPrint("ERROR: \(message)")
-                case .other(let message, _, _):
-                    if result.source is USIGNormalizadorAPI.Type {
+        if filteredResults.count == 0 {
+            for result in results {
+                if let error = result.error {
+                    switch error {
+                    case .streetNotFound(_, _, _):
+                        self.state = .notFound
+                            
+                        reloadTable()
+                            
+                        return
+                    case .service(let message, _, _):
+                        debugPrint("ERROR: \(message)")
+                        
                         self.state = .error
+                            
+                        reloadTable()
+                            
+                        return
+                    case .other(let message, _, _):
+                        debugPrint("ERROR: \(message)")
+                        
+                        self.state = .error
+                            
+                        reloadTable()
+                            
+                        return
+                    default: break
                     }
-                    
-                    debugPrint("ERROR: \(message)")
-                default: break
                 }
             }
         }
         
-        self.results = results.filter({ response in response.addresses != nil }).flatMap({ response in response.addresses! })
         
-        reloadTable(sections: [1])
-    }
-
-    private func handleError(_ error: Swift.Error) {
-        DispatchQueue.main.async {
-            if self.searchController.searchBar.isLoading {
-                self.searchController.searchBar.isLoading = false
-            }
-        }
+        self.results = filteredResults.flatMap({ response in response.addresses! })
         
-        self.results = []
-        state = .error
-
-        debugPrint(error)
-        reloadTable()
+        reloadTable(sections: [contentSection])
     }
 
     private func handleSelectedItem(indexPath: IndexPath) {
-        if indexPath.section == 1 {
+        if indexPath.section == contentSection {
             let result = self.results[indexPath.row]
 
             guard (result.number != nil && result.type == "calle_altura") || result.type == "calle_y_calle" else {
@@ -362,10 +340,10 @@ public class USIGNormalizadorController: UIViewController {
                     self.results = []
 
                     self.results.append(result)
-                    self.table.reloadSections(IndexSet(integer: 1), with: .none)
+                    self.reloadTable(sections: [self.contentSection])
 
                     if !self.forceNormalization {
-                        self.table.reloadSections(IndexSet(integer: 0), with: .none)
+                        self.reloadTable(sections: [self.actionsSection])
                     }
 
                     self.searchController.searchBar.textField?.text = result.street + " "
@@ -393,19 +371,6 @@ public class USIGNormalizadorController: UIViewController {
     
     private func reloadTable(sections: [Int]? = nil) {
         DispatchQueue.main.async { [unowned self] in
-            if !self.forceNormalization,
-                let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
-                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
-                let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
-                let isEmpty = self.actions[actionIndex].cell.text.string.trimmingCharacters(in: self.whitespace).characters.count == 0
-                
-                self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
-                
-                if (!isEqual || !isEmpty) && (self.state != .empty) != self.actions[actionIndex].visible.value {
-                    self.actions[actionIndex].visible.value = (!isEqual || !isEmpty) && (self.state != .empty)
-                }
-            }
-            
             if let indexes = sections {
                 self.table.reloadSections(IndexSet(indexes), with: .none)
             }
@@ -414,6 +379,19 @@ public class USIGNormalizadorController: UIViewController {
             }
             
             self.table.reloadEmptyDataSet()
+            
+            if !self.forceNormalization,
+                let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
+                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
+                let isEqual = self.results.first(where: { result in result.address.replacingOccurrences(of: self.addressSufix, with: "") == text.uppercased() }) != nil
+                let isShort = text.characters.count < self.minimumCharacters
+                
+                if !isShort {
+                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
+                }
+                
+                self.actions[actionIndex].visible.value = !isEqual && !isShort
+            }
         }
     }
 
@@ -441,12 +419,12 @@ public class USIGNormalizadorController: UIViewController {
 
 extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate {
     public func numberOfSections(in tableView: UITableView) -> Int { return 2 }
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return section == 1 ? results.count : visibleActions.count }
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { return section == contentSection ? results.count : visibleActions.count }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        if indexPath.section == 1 {
+        if indexPath.section == contentSection {
             let result = results[indexPath.row]
             let address = result.address.replacingOccurrences(of: addressSufix, with: "")
             
@@ -477,8 +455,6 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             cell.textLabel?.attributedText = action.cell.text
             cell.detailTextLabel?.attributedText = action.cell.detailText
         }
-        
-        cell.imageView?.transform = CGAffineTransform(scaleX: 0.65, y: 0.65)
         
         return cell
     }
@@ -574,12 +550,12 @@ private extension String {
 fileprivate extension UISearchBar {
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var textField: UITextField? {
-        return subviews.first?.subviews.flatMap { $0 as? UITextField }.first
+        return subviews.first?.subviews.flatMap { view in view as? UITextField }.first
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var activityIndicator: UIActivityIndicatorView? {
-        return textField?.leftView?.subviews.flatMap { $0 as? UIActivityIndicatorView }.first
+        return textField?.leftView?.subviews.flatMap { view in view as? UIActivityIndicatorView }.first
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator

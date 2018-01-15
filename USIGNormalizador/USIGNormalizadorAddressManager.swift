@@ -12,13 +12,15 @@ import RxSwift
 import Moya
 
 internal protocol USIGNormalizadorAddressManager {
-    func getStreams(from sources: [Observable<USIGNormalizadorResponse>]) -> Observable<[USIGNormalizadorResponse]>
+    func getStreams(from sources: [Observable<[USIGNormalizadorResponse]>]) -> Observable<[USIGNormalizadorResponse]>
 }
 
 internal class AddressManager: USIGNormalizadorAddressManager {
-    func getStreams(from sources: [Observable<USIGNormalizadorResponse>]) -> Observable<[USIGNormalizadorResponse]> {
-        let streams = sources.map { stream in stream.observeOn(ConcurrentMainScheduler.instance) }
+    func getStreams(from sources: [Observable<[USIGNormalizadorResponse]>]) -> Observable<[USIGNormalizadorResponse]> {
+        let streams = sources.flatMap { stream in stream.observeOn(ConcurrentMainScheduler.instance) }
         
-        return Observable.zip(streams)
+        return Observable.zip(streams).flatMap({ matrix -> Observable<[USIGNormalizadorResponse]> in
+            return Observable.of(matrix.reduce([] as [USIGNormalizadorResponse], +))
+        })
     }
 }
