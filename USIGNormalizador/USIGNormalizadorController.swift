@@ -139,6 +139,7 @@ public class USIGNormalizadorController: UIViewController {
 
         navigationController?.navigationBar.isTranslucent = false
         navigationItem.titleView = searchController.searchBar
+        navigationItem.hidesBackButton = true
     }
 
     private func setupTableView() {
