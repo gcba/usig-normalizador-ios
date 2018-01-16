@@ -8,23 +8,26 @@ Cliente iOS del [servicio de normalización de direcciones de USIG](http://servi
 
 ## Instalación
 
+
 ### Cocoapods
 
 En el `Podfile` del proyecto:
 
 ```ruby
-pod 'USIGNormalizador', '~> 0.2'
+pod 'USIGNormalizador', '~> 1.0'
 ```
+
 
 ### Carthage
 
 En el `Cartfile` del proyecto:
 
 ```
-github "gcba/usig-normalizador-ios" ~> 0.2
+github "gcba/usig-normalizador-ios" ~> 1.0
 ```
 
 ## Métodos
+
 
 ### Búsqueda por calle
 
@@ -58,13 +61,24 @@ USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
 }
 ```
 
-Los parámetros opcionales pueden ir juntos o separados.
+##### includePlaces (Bool)
+
+Incluir lugares en la búsqueda o no. Por defecto es `true`.
 
 ```swift
-USIGNormalizador.search(query: "Callao", excluding: nil, maxResults: 7) { result, error in
+USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
     // Do something
 }
 ```
+
+Los parámetros opcionales pueden ir juntos o separados.
+
+```swift
+USIGNormalizador.search(query: "Callao", excluding: nil, maxResults: 7, includePlaces: false) { result, error in
+    // Do something
+}
+```
+
 
 ### Búsqueda por coordenadas
 
@@ -91,6 +105,7 @@ searchController.delegate = self
 present(navigationController, animated: true, completion: nil)
 ```
 
+
 ### Editar
 
 Es posible precargar un término de búsqueda antes de presentar el controlador.
@@ -99,18 +114,37 @@ Es posible precargar un término de búsqueda antes de presentar el controlador.
 searchController.edit = "CALLAO AV. 123"
 ```
 
+
 ### Modalidades
 
-Hay dos modalidades opcionales, que pueden activarse juntas o separadas:
+Hay tres modalidades opcionales, que pueden activarse juntas o separadas:
+
+#### Mostrar pin
+
+Agrega una celda en la parte superior de la tabla con la imagen de un [pin](https://www.google.com.ar/search?q=map+pin) y un texto configurable. Cuando se la tapea ejecuta el método `didSelectPin` del delegado. Se activa implementando el método `shouldShowPin` del delegado para que retorne `true`.
 
 #### No forzar normalización
+
 Da la posibilidad al usuario de escribir y elegir una calle que no esté entre los resultados de la búsqueda. Muestra una celda arriba de los resultados con el término de búsqueda ingresado, y cuando se la tapea pasa este valor al método `didSelectUnnormalizedAddress`. Se activa cuando el método `shouldForceNormalization` del delegado retorna `false`.
-#### Mostrar pin
-Agrega una celda en la parte superior de la tabla con la imagen de un [pin](https://www.google.com.ar/search?q=map+pin) y un texto configurable. Cuando se la tapea ejecuta el método `didSelectPin` del delegado. Se activa implementando el método `shouldShowPin` del delegado para que retorne `true`.
+
+#### Incluir lugares
+
+Incluye lugares en los resultados de búsqueda.
+
 
 ### Delegado
 
 El controlador de búsqueda se configura implementando métodos del protocolo `USIGNormalizadorControllerDelegate`. Es obligatorio implementar `didSelectValue`; los demás métodos son opcionales.
+
+#### shouldShowPin
+
+Si se muestra la celda con el pin. El valor por defecto es `false`.
+
+```swift
+func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool {
+    return true
+}
+```
 
 #### shouldForceNormalization
 
@@ -122,12 +156,22 @@ func shouldForceNormalization(_ searchController: USIGNormalizadorController) ->
 }
 ```
 
-#### shouldShowPin
+#### shouldIncludePlaces
 
-Si se muestra la celda con el pin. El valor por defecto es `false`.
+Si se incluyen lugares en los resultados de búsqueda. El valor por defecto es `true`.
 
 ```swift
-func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool {
+func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool {
+    return false
+}
+```
+
+#### shouldShowDetails
+
+Si se muestran el partido y la localidad de cada dirección. El valor por defecto es `false`.
+
+```swift
+func shouldShowDetails(_ searchController: USIGNormalizadorController) -> Bool {
     return true
 }
 ```
@@ -192,23 +236,23 @@ func maxResults(_ searchController: USIGNormalizadorController) -> Int {
 }
 ```
 
+#### pinImage
+
+Permite cambiar el ícono del pin.
+
+```swift
+func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! {
+    return UIImage(named: "MyIcon")
+}
+```
+
 #### pinColor
 
-Color de tint que se aplicará a la imagen del pin. El color por defecto es `UIColor.darkGray`.
+Color de tint que se aplicará al ícono del pin. El color por defecto es `UIColor.lightGray`.
 
 ```swift
 func pinColor(_ searchController: USIGNormalizadorController) -> UIColor {
     return UIColor.black
-}
-```
-
-#### pinImage
-
-Permite cambiar la imagen del pin.
-
-```swift
-func pinImage(_ searchController: USIGNormalizadorController) -> UIImage! {
-    return UIImage(named: "MyPin")
 }
 ```
 
@@ -221,6 +265,47 @@ func pinText(_ searchController: USIGNormalizadorController) -> String {
     return "Marcar en el mapa"
 }
 ```
+
+#### addressImage
+
+Permite cambiar el ícono de las direcciones.
+
+```swift
+func addressImage(_ searchController: USIGNormalizadorController) -> UIImage! {
+    return UIImage(named: "MyIcon")
+}
+```
+
+#### addressColor
+
+Color de tint que se aplicará al ícono de las direcciones. El color por defecto es `UIColor.lightGray`.
+
+```swift
+func addressColor(_ searchController: USIGNormalizadorController) -> UIColor {
+    return UIColor.black
+}
+```
+
+#### placeImage
+
+Permite cambiar el ícono de los lugares.
+
+```swift
+func placeImage(_ searchController: USIGNormalizadorController) -> UIImage! {
+    return UIImage(named: "MyIcon")
+}
+```
+
+#### placeColor
+
+Color de tint que se aplicará al ícono de los lugares. El color por defecto es `UIColor.lightGray`.
+
+```swift
+func placeColor(_ searchController: USIGNormalizadorController) -> UIColor {
+    return UIColor.black
+}
+```
+
 
 ### Localización
 
