@@ -9,18 +9,20 @@
 import Foundation
 import Moya
 
-public enum USIGNormalizadorExclusions: String {
-    case AMBA = "almirante_brown,avellaneda,berazategui,berisso,canuelas,ensenada,escobar,esteban_echeverria,ezeiza,florencio_varela,general_rodriguez,general_san_martin,hurlingham,ituzaingo,jose_c_paz,la_matanza,lanus,la_plata,lomas_de_zamora,malvinas_argentinas,marcos_paz,merlo,moreno,moron,pilar,presidente_peron,quilmes,san_fernando,san_isidro,san_miguel,san_vicente,tigre,tres_de_febrero,vicente_lopez"
-    case none = ""
-}
+// MARK: - USIG Normalizador API
 
 public enum USIGNormalizadorAPI {
     case normalizar(direccion: String, excluyendo: String?, geocodificar: Bool, max: Int)
     case normalizarCoordenadas(latitud: Double, longitud: Double)
 }
 
+public enum USIGNormalizadorExclusions: String {
+    case AMBA = "almirante_brown,avellaneda,berazategui,berisso,canuelas,ensenada,escobar,esteban_echeverria,ezeiza,florencio_varela,general_rodriguez,general_san_martin,hurlingham,ituzaingo,jose_c_paz,la_matanza,lanus,la_plata,lomas_de_zamora,malvinas_argentinas,marcos_paz,merlo,moreno,moron,pilar,presidente_peron,quilmes,san_fernando,san_isidro,san_miguel,san_vicente,tigre,tres_de_febrero,vicente_lopez"
+    case none = ""
+}
+
 extension USIGNormalizadorAPI: TargetType {
-    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpoint)! }
+    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpointNormalizador)! }
 
     public var path: String {
         switch self {
@@ -36,13 +38,15 @@ extension USIGNormalizadorAPI: TargetType {
     public var parameters: [String: Any]? {
         switch self {
         case .normalizar(let direccion, let excluyendo, let geocodificar, let max):
-            return [
-					"direccion": direccion,
-					"geocodificar": geocodificar ? "true" : "false",
-					"maxOptions": max,
-					"exclude": excluyendo ?? "",
-					"tipoResultado": "calle_altura_calle_y_calle"
-				]
+            var params: [String: Any] = [:]
+
+            params["direccion"] = direccion
+            params["geocodificar"] = geocodificar ? "true" : "false"
+            params["maxOptions"] = max
+            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added at all
+            params["tipoResultado"] = "calle_altura_calle_y_calle"
+
+            return params
         case .normalizarCoordenadas(let latitud, let longitud):
             return ["lat": latitud, "lng": longitud, "tipoResultado": "calle_altura_calle_y_calle"]
         }
@@ -64,3 +68,76 @@ extension USIGNormalizadorAPI: TargetType {
     public var task: Task { return .request }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
+
+// MARK: - USIG Epok API
+
+public enum USIGEpokAPI {
+    case getCategorias()
+    case getObjectContent(id: String)
+    case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Double]?, start: Int?, limit: Int?, total: Bool?)
+    case reverseGeocoderLugares(categorias: [String], latitud: Double, longitud: Double, srid: Int?, radio: Int?)
+}
+
+extension USIGEpokAPI: TargetType {
+    public var baseURL: URL { return URL(string: USIGNormalizadorConfig.endpointEpok)! }
+
+    public var path: String {
+        switch self {
+        case .getCategorias:
+            return "/getCategorias/"
+        case .getObjectContent(_):
+            return "/getObjectContent/"
+        case .buscar(_, _, _, _, _, _, _):
+            return "/buscar/"
+        case .reverseGeocoderLugares(_, _, _, _, _):
+            return "/reverseGeocoderLugares/"
+        }
+    }
+
+    public var method: Moya.Method { return .get }
+
+    public var parameters: [String: Any]? {
+        switch self {
+        case .getCategorias:
+            return nil
+        case .getObjectContent(let id):
+            return ["id": id]
+        case .buscar(let texto, let categoria, let clase, let boundingBox, let start, let limit, let total):
+            var params: [String: Any] = [:]
+
+            params["texto"] = texto
+            params["categoria"] = categoria
+            params["clase"] = clase
+            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { String($0) }.joined(separator: ",") : nil
+            params["start"] = start
+            params["limit"] = limit
+            params["totalFull"] = total != nil ? (total! ? "true" : "false") : nil
+
+            return params
+        case .reverseGeocoderLugares(let categorias, let latitud, let longitud, let srid, let radio):
+            var params: [String: Any] = [:]
+
+            params["categorias"] = categorias.joined(separator: ",")
+            params["y"] = latitud
+            params["x"] = longitud
+            params["srid"] = srid
+            params["radio"] = radio
+
+            return params
+        }
+    }
+
+    public var sampleData: Data { return Data() }
+    public var task: Task { return .request }
+    public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
+}
+
+// MARK: - USIG Response
+
+internal struct USIGNormalizadorResponse {
+    let source: TargetType.Type
+    let addresses: [USIGNormalizadorAddress]?
+    let error: USIGNormalizadorError?
+}
+
+
