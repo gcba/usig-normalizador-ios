@@ -66,7 +66,7 @@ USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
 Incluir lugares en la búsqueda o no. Por defecto es `true`.
 
 ```swift
-USIGNormalizador.search(query: "Callao", maxResults: 7) { result, error in
+USIGNormalizador.search(query: "Callao", includePlaces: false) { result, error in
     // Do something
 }
 ```
