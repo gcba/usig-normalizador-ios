@@ -21,7 +21,7 @@ public protocol USIGNormalizadorControllerDelegate {
     func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool
     func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool
     func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool
-    func shouldShowSuffix(_ searchController: USIGNormalizadorController) -> Bool
+    func shouldShowDetails(_ searchController: USIGNormalizadorController) -> Bool
     func didSelectValue(_ searchController: USIGNormalizadorController, value: USIGNormalizadorAddress)
     func didSelectPin(_ searchController: USIGNormalizadorController)
     func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String)
@@ -41,7 +41,7 @@ extension USIGNormalizadorControllerDelegate {
     public func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldShowPinDefault }
     public func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldForceNormalizationDefault }
     public func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldIncludePlacesDefault }
-    public func shouldShowSuffix(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldShowSuffixDefault }
+    public func shouldShowDetails(_ searchController: USIGNormalizadorController) -> Bool { return USIGNormalizadorConfig.shouldShowDetailsDefault }
     public func didSelectPin(_ searchController: USIGNormalizadorController) {}
     public func didSelectUnnormalizedAddress(_ searchController: USIGNormalizadorController, value: String) {}
     public func didCancelSelection(_ searchController: USIGNormalizadorController) {}

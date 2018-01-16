@@ -25,5 +25,5 @@ class USIGNormalizadorConfig {
     static let shouldShowPinDefault: Bool = false
     static let shouldForceNormalizationDefault: Bool = true
     static let shouldIncludePlacesDefault: Bool = true
-    static let shouldShowSuffixDefault: Bool = false
+    static let shouldShowDetailsDefault: Bool = false
 }

@@ -65,8 +65,8 @@ public class USIGNormalizadorController: UIViewController {
         return delegate?.shouldIncludePlaces(self) ?? USIGNormalizadorConfig.shouldIncludePlacesDefault
     }
     
-    fileprivate var showSuffix: Bool {
-        return delegate?.shouldShowSuffix(self) ?? USIGNormalizadorConfig.shouldShowSuffixDefault
+    fileprivate var showDetails: Bool {
+        return delegate?.shouldShowDetails(self) ?? USIGNormalizadorConfig.shouldShowDetailsDefault
     }
     
     fileprivate var exclusions: String {
@@ -140,7 +140,7 @@ public class USIGNormalizadorController: UIViewController {
         searchController.searchBar.delegate = self
         
         if value != nil {
-            searchController.searchBar.text = showSuffix ? value!.address : value!.address.removeSuffix(from: value!)
+            searchController.searchBar.text = showDetails ? value!.address : value!.address.removeSuffix(from: value!)
         }
 
         navigationController?.navigationBar.isTranslucent = false
@@ -412,7 +412,7 @@ public class USIGNormalizadorController: UIViewController {
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
                 let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
                 let equalItem = self.results.first { [unowned self] item in
-                    self.showSuffix ? item.address == text.uppercased() : item.address.removeSuffix(from: item) == text.uppercased()
+                    self.showDetails ? item.address == text.uppercased() : item.address.removeSuffix(from: item) == text.uppercased()
                 }
                 
                 let isEqual = equalItem != nil
@@ -463,7 +463,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
         
         if indexPath.section == contentSection {
             let result = results[indexPath.row]
-            let address = showSuffix ? result.address : result.address.removeSuffix(from: result)
+            let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
             if let label = result.label {
                 cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
