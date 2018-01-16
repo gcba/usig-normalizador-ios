@@ -22,10 +22,10 @@ public struct USIGNormalizadorAddress {
     public let localityName: String?
     public let label: String?
     internal let source: TargetType.Type
-    
+
     init(from json: [String: Any]) {
         let coordinates = json["coordenadas"] as? [String: Any]
-        
+
         self.address = (json["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         self.street = (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         self.number = json["altura"] as? Int
@@ -36,18 +36,18 @@ public struct USIGNormalizadorAddress {
         self.localityName = (json["nombre_localidad"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         self.label = json["label"] as? String
         self.source = json["source"] as? TargetType.Type ?? USIGNormalizadorAPI.self
-        
+
         self.latitude = USIGNormalizadorAddress.parseCoordinate(fromDict: coordinates, key: "y")
         self.longitude = USIGNormalizadorAddress.parseCoordinate(fromDict: coordinates, key: "x")
     }
-    
+
     static private func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
         guard let coordinatesDict = dict else { return nil }
-        
+
         if let coordinateString = coordinatesDict[key] as? String {
             return Double(coordinateString)
         }
-        
+
         return coordinatesDict[key] as? Double
     }
 }

@@ -12,7 +12,7 @@ import Moya
 
 public class USIGNormalizador {
     private static let disposeBag: DisposeBag = DisposeBag()
-    
+
     // MARK: - Public API
 
     public static let api: MoyaProvider<USIGNormalizadorAPI> = MoyaProvider<USIGNormalizadorAPI>()
@@ -31,7 +31,7 @@ public class USIGNormalizador {
         let searchStream = Observable.just(query)
         let normalizationStream = normalizationAddressProvider.getStream(from: searchStream)
         var sources: [Observable<[USIGNormalizadorResponse]>] = [normalizationStream]
-        
+
         if includePlaces {
             let epokConfig = EpokProviderConfig(
                 categoria: nil,
@@ -43,13 +43,13 @@ public class USIGNormalizador {
                 minCharacters: 0,
                 normalization: normalizationConfig
             )
-            
+
             let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: RxMoyaProvider<USIGEpokAPI>(), normalizationAPIProvider: normalizationAPIProvider)
             let epokStream = epokAddressProvider.getStream(from: searchStream)
-            
+
             sources.append(epokStream)
         }
-        
+
         AddressManager()
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
@@ -62,22 +62,22 @@ public class USIGNormalizador {
                             switch error {
                             case .streetNotFound(let message):
                                 completion(nil, USIGNormalizadorError.streetNotFound(message))
-                                
+
                                 return
                             case .service(let message):
                                 completion(nil, USIGNormalizadorError.service(message))
-                                
+
                                 return
                             case .other(let message):
                                 completion(nil, USIGNormalizadorError.other(message))
-                                
+
                                 return
                             default: break
                             }
                         }
                     }
                 }
-                
+
                 completion(Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults)), nil)
             })
             .addDisposableTo(disposeBag)
