@@ -88,7 +88,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
         }
         
         let address = text.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        let request = API.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
+        let request = USIGNormalizadorAPI.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
         
         return apiProvider
             .request(request)
