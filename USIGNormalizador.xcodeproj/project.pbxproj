@@ -94,13 +94,13 @@
 		C01ACADB1F84323900436606 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C01F09B91F82C43800E422E8 /* USIGNormalizador.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = USIGNormalizador.storyboard; sourceTree = "<group>"; };
 		C01F09BB1F82CEAC00E422E8 /* USIGNormalizador.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizador.swift; sourceTree = "<group>"; };
-		C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorDelegate.swift; sourceTree = "<group>"; };
+		C01F09BD1F82D43300E422E8 /* USIGNormalizadorDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = USIGNormalizadorDelegate.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		C01F09BF1F83E43300E422E8 /* USIGNormalizadorError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorError.swift; sourceTree = "<group>"; };
 		C031E47F2007DF07004A1DB6 /* USIGNormalizadorAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAction.swift; sourceTree = "<group>"; };
 		C076C59C2003C5A50006975D /* USIGNormalizadorAddressManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddressManager.swift; sourceTree = "<group>"; };
 		C85B0483E4623CE7AEA8E236 /* Pods_USIGNormalizadorTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_USIGNormalizadorTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5446613200C3E4100FF2AB4 /* USIGNormalizadorCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorCell.swift; sourceTree = "<group>"; };
-		D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorConfig.swift; sourceTree = "<group>"; };
+		D54747701F8C4CB900C9B761 /* USIGNormalizadorConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = USIGNormalizadorConfig.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		D547F9E71F7D99B2002977C0 /* USIGNormalizador.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = USIGNormalizador.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D547F9EA1F7D99B2002977C0 /* USIGNormalizador.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = USIGNormalizador.h; sourceTree = "<group>"; };
 		D547F9EB1F7D99B2002977C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -110,7 +110,7 @@
 		D5A9780A2003581300D71676 /* USIGNormalizadorAddressProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddressProvider.swift; sourceTree = "<group>"; };
 		D5CBCCCE1F7DA1FA00CCF15D /* USIGNormalizadorAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAPI.swift; sourceTree = "<group>"; };
 		D5CBCCD01F7DA24600CCF15D /* USIGNormalizadorAddress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorAddress.swift; sourceTree = "<group>"; };
-		D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = USIGNormalizadorController.swift; sourceTree = "<group>"; };
+		D5CBCCD21F7DA29200CCF15D /* USIGNormalizadorController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = USIGNormalizadorController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		D5DBB8711F7DCB4E0067DC62 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5DBB8731F7DCB4F0067DC62 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D5DBB8751F7DCB4F0067DC62 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
