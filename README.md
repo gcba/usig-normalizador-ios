@@ -6,6 +6,7 @@
 
 Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar) para CABA y AMBA, desarrollado en Swift 3.
 
+
 ## Instalación
 
 
@@ -25,6 +26,7 @@ En el `Cartfile` del proyecto:
 ```
 github "gcba/usig-normalizador-ios" ~> 1.0
 ```
+
 
 ## Métodos
 
@@ -90,6 +92,7 @@ USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { 
 }
 ```
 
+
 ## Interfaz
 
 ![Screeshot](https://raw.githubusercontent.com/gcba/usig-normalizador-ios/master/screenshot.png "Vista de búsqueda")
@@ -129,7 +132,7 @@ Da la posibilidad al usuario de escribir y elegir una calle que no esté entre l
 
 #### Incluir lugares
 
-Incluye lugares en los resultados de búsqueda.
+Incluye lugares en la búsqueda.
 
 
 ### Delegado
@@ -158,7 +161,7 @@ func shouldForceNormalization(_ searchController: USIGNormalizadorController) ->
 
 #### shouldIncludePlaces
 
-Si se incluyen lugares en los resultados de búsqueda. El valor por defecto es `true`.
+Si se incluyen lugares en la búsqueda. El valor por defecto es `true`.
 
 ```swift
 func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool {
@@ -311,9 +314,11 @@ func placeColor(_ searchController: USIGNormalizadorController) -> UIColor {
 
 Para que el botón `Cancelar` aparezca en español, asegurarse que en el `Info.plist` de la **app** la clave `Localization native development region` tenga el valor `es`.
 
+
 ## API
 
 `USIGNormalizador.api` expone un [Moya provider](https://github.com/Moya/Moya) para realizar llamadas directas al [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar).
+
 
 ## Licencia
 
