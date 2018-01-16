@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import Moya
 
-public class USIGNormalizador {
+public class USIGNormalizador: NSObject {
     private static let disposeBag: DisposeBag = DisposeBag()
 
     // MARK: - Public API
