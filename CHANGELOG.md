@@ -4,7 +4,9 @@
 
 ### Added
 - EPOK API support.
+- Objective-C support.
 - More configuration options.
+- More test cases.
 
 ### Changed
 - Refactored to support multiple API providers.
