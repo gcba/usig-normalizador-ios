@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.0 - 16/01/2018
+
+### Added
+- EPOK API support.
+- More configuration options.
+
+### Changed
+- Refactored to support multiple API providers.
+- Errors do not include the response and response code anymore.
+
+### Fixed
+- UI issue in iOS 11.
+- Warning on View Controller dismissal.
+
 ## v0.3.0 - 13/12/2017
 
 ### Added
