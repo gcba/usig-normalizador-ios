@@ -11,9 +11,9 @@ import RxSwift
 
 internal protocol USIGNormalizadorAction {
     var cell: ActionCell { get set }
-    var visible: Variable<Bool> { get set }
+    var isVisible: Variable<Bool> { get set }
     
-    init(cell: ActionCell, visible: Bool)
+    init(cell: ActionCell, isVisible: Bool)
 }
 
 internal struct ActionCell {
@@ -45,21 +45,21 @@ internal struct ActionCell {
 }
 
 internal class PinAction: USIGNormalizadorAction {
-    required init(cell: ActionCell, visible: Bool) {
+    required init(cell: ActionCell, isVisible: Bool) {
         self.cell = cell
-        self.visible = Variable<Bool>(visible)
+        self.isVisible = Variable<Bool>(isVisible)
     }
     
     var cell: ActionCell
-    var visible: Variable<Bool>
+    var isVisible: Variable<Bool>
 }
 
 internal class NoNormalizationAction: USIGNormalizadorAction  {
-    required init(cell: ActionCell, visible: Bool) {
+    required init(cell: ActionCell, isVisible: Bool) {
         self.cell = cell
-        self.visible = Variable<Bool>(visible)
+        self.isVisible = Variable<Bool>(isVisible)
     }
     
     var cell: ActionCell
-    var visible: Variable<Bool>
+    var isVisible: Variable<Bool>
 }

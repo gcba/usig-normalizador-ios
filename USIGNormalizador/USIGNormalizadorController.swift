@@ -50,7 +50,7 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate let minCharactersEpok: Int = 4
     
     fileprivate var visibleActions: [USIGNormalizadorAction] {
-        return actions.filter { action in action.visible.value }
+        return actions.filter { action in action.isVisible.value }
     }
 
     fileprivate var showPin: Bool {
@@ -219,7 +219,7 @@ public class USIGNormalizadorController: UIViewController {
         }
         
         for action in actions {
-            action.visible
+            action.isVisible
                 .asObservable()
                 .subscribe(onNext: {[unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
                 .addDisposableTo(disposeBag)
@@ -247,9 +247,9 @@ public class USIGNormalizadorController: UIViewController {
         let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
 
         let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
-        let pinAction = PinAction(cell: pinCell, visible: showPin)
+        let pinAction = PinAction(cell: pinCell, isVisible: showPin)
         let noNormalizationCell = ActionCell()
-        let noNormalizationAction = NoNormalizationAction(cell: noNormalizationCell, visible: false) // Hide it at first because it's empty
+        let noNormalizationAction = NoNormalizationAction(cell: noNormalizationCell, isVisible: false) // Hide it at first because it's empty
         
         actions.append(pinAction)
         actions.append(noNormalizationAction)
@@ -422,7 +422,7 @@ public class USIGNormalizadorController: UIViewController {
                     self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
                 }
                 
-                self.actions[actionIndex].visible.value = !isEqual && !isShort
+                self.actions[actionIndex].isVisible.value = !isEqual && !isShort
             }
         }
     }
