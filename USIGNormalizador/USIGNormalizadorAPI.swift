@@ -108,7 +108,7 @@ extension USIGEpokAPI: TargetType {
             params["texto"] = texto
             params["categoria"] = categoria
             params["clase"] = clase
-            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { String($0) }.joined(separator: ",") : nil
+            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { item in String(item) }.joined(separator: ",") : nil
             params["start"] = start
             params["limit"] = limit
             params["totalFull"] = total != nil ? (total! ? "true" : "false") : nil

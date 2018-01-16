@@ -36,6 +36,8 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result![0].longitude == nil)
             XCTAssert(result![0].districtCode != nil)
             XCTAssert(result![0].districtCode == "caba")
+            XCTAssert(result![0].districtName == "CABA")
+            XCTAssert(result![0].localityName == "CABA")
 
             expect.fulfill()
         }
@@ -63,6 +65,8 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result![0].longitude == nil)
             XCTAssert(result![0].districtCode != nil)
             XCTAssert(result![0].districtCode == "caba")
+            XCTAssert(result![0].districtName == "CABA")
+            XCTAssert(result![0].localityName == "CABA")
 
             expect.fulfill()
         }
@@ -92,6 +96,8 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result![0].longitude == -58.391966)
             XCTAssert(result![0].districtCode != nil)
             XCTAssert(result![0].districtCode == "caba")
+            XCTAssert(result![0].districtName == "CABA")
+            XCTAssert(result![0].localityName == "CABA")
 
             expect.fulfill()
         }
@@ -121,6 +127,8 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(result!.longitude == -58.3659754141202)
             XCTAssert(result!.districtCode != nil)
             XCTAssert(result!.districtCode == "caba")
+            XCTAssert(result!.districtName == "CABA")
+            XCTAssert(result!.localityName == "CABA")
 
             expect.fulfill()
         }
@@ -128,6 +136,84 @@ class USIGNormalizadorTests: XCTestCase {
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
                 XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar obtener la localización: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testNormalizadorApiSearch() {
+        let request = USIGNormalizadorAPI.normalizar(direccion: "Call", excluyendo: USIGNormalizadorExclusions.AMBA.rawValue, geocodificar: true, max: 5)
+        let api = MoyaProvider<USIGNormalizadorAPI>()
+
+        let expect = expectation(description: "Se busca una calle y se obtiene una lista de resultados")
+
+        api.request(request, completion: { response in
+            XCTAssert(response.error == nil)
+            XCTAssert(response.value != nil)
+            
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any],
+                let addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>,
+                addresses.count > 0,
+                json["errorMessage"] == nil else {
+                    XCTFail("Error al parsear la respuesta de la API de normalización")
+                    
+                    return
+            }
+            
+            XCTAssert(addresses.count == 5)
+            XCTAssert(addresses[0]["direccion"] is String)
+            XCTAssert(addresses[0]["direccion"] as! String == "CALLAO AV., CABA, CABA")
+            XCTAssert(addresses[0]["nombre_calle"] is String)
+            XCTAssert(addresses[0]["nombre_calle"] as! String == "CALLAO AV.")
+            XCTAssert(addresses[0]["cod_partido"] is String)
+            XCTAssert(addresses[0]["cod_partido"] as! String == "caba")
+            XCTAssert(addresses[0]["nombre_partido"] is String)
+            XCTAssert(addresses[0]["nombre_partido"] as! String == "CABA")
+            XCTAssert(addresses[0]["nombre_localidad"] is String)
+            XCTAssert(addresses[0]["nombre_localidad"] as! String == "CABA")
+            
+            expect.fulfill()
+        })
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func testNormalizadorApiLocation() {
+        let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: -34.627847, longitud: -58.365986)
+        let api = MoyaProvider<USIGNormalizadorAPI>()
+        
+        let expect = expectation(description: "Se busca una calle y se obtiene una lista de resultados")
+        
+        api.request(request, completion: { response in
+            XCTAssert(response.error == nil)
+            XCTAssert(response.value != nil)
+            
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any] else {
+                XCTFail("Error al parsear la respuesta de la API de normalización")
+                    
+                return
+            }
+            
+            XCTAssert(json["direccion"] is String)
+            XCTAssert(json["direccion"] as! String == "PI Y MARGALL 750, CABA")
+            XCTAssert(json["nombre_calle"] is String)
+            XCTAssert(json["nombre_calle"] as! String == "PI Y MARGALL")
+            XCTAssert(json["cod_partido"] is String)
+            XCTAssert(json["cod_partido"] as! String == "caba")
+            XCTAssert(json["nombre_partido"] is String)
+            XCTAssert(json["nombre_partido"] as! String == "CABA")
+            XCTAssert(json["nombre_localidad"] is String)
+            XCTAssert(json["nombre_localidad"] as! String == "CABA")
+            
+            expect.fulfill()
+        })
+        
+        waitForExpectations(timeout: timeout) { error in
+            if let error = error {
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
             }
         }
     }
@@ -141,11 +227,11 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(response.error == nil)
             XCTAssert(response.value != nil)
 
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
-                let totalString = json?["totalFull"] as? String,
-                let clases = json?["clasesEncontradas"] as? Array<[String: String]>,
-                let instancias = json?["instancias"] as? Array<[String: String]>,
-                let limitString = json?["total"] as? String,
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any],
+                let totalString = json["totalFull"] as? String,
+                let clases = json["clasesEncontradas"] as? Array<[String: String]>,
+                let instancias = json["instancias"] as? Array<[String: String]>,
+                let limitString = json["total"] as? String,
                 let total = Int(totalString),
                 let limit = Int(limitString) else {
                 XCTFail("Error al parsear la respuesta de la API de lugares")
@@ -178,11 +264,11 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(response.error == nil)
             XCTAssert(response.value != nil)
 
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
-                let totalString = json?["totalFull"] as? String,
-                let clases = json?["clasesEncontradas"] as? Array<[String: String]>,
-                let instancias = json?["instancias"] as? Array<[String: String]>,
-                let limitString = json?["total"] as? String,
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any],
+                let totalString = json["totalFull"] as? String,
+                let clases = json["clasesEncontradas"] as? Array<[String: String]>,
+                let instancias = json["instancias"] as? Array<[String: String]>,
+                let limitString = json["total"] as? String,
                 let total = Int(totalString),
                 let limit = Int(limitString) else {
                     XCTFail("Error al parsear la respuesta de la API de lugares")
@@ -215,11 +301,11 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(response.error == nil)
             XCTAssert(response.value != nil)
 
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
-                let totalString = json?["totalFull"] as? String,
-                let clases = json?["clasesEncontradas"] as? Array<[String: String]>,
-                let instancias = json?["instancias"] as? Array<[String: String]>,
-                let limitString = json?["total"] as? String,
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any],
+                let totalString = json["totalFull"] as? String,
+                let clases = json["clasesEncontradas"] as? Array<[String: String]>,
+                let instancias = json["instancias"] as? Array<[String: String]>,
+                let limitString = json["total"] as? String,
                 let total = Int(totalString),
                 let limit = Int(limitString) else {
                     XCTFail("Error al parsear la respuesta de la API de lugares")
@@ -251,18 +337,18 @@ class USIGNormalizadorTests: XCTestCase {
             XCTAssert(response.error == nil)
             XCTAssert(response.value != nil)
 
-            guard let json = try? response.value?.mapJSON(failsOnEmptyData: true) as? [String: Any],
-                let direccionNormalizada = json?["direccionNormalizada"] as? String,
-                let contenido = json?["contenido"] as? Array<[String: String]>,
-                let fuente = json?["fuente"] as? String,
-                let claseId = json?["claseId"] as? String,
-                let clase = json?["clase"] as? String,
-                let fechaAlta = json?["fechaAlta"] as? String,
-                let fechaActualizacion = json?["fechaActualizacion"] as? String,
-                let idForaneo = json?["idForaneo"] as? String,
-                let fechaUltimaModificacion = json?["fechaUltimaModificacion"] as? String,
-                let ubicacion = json?["ubicacion"] as? [String: String],
-                let id = json?["id"] as? String else {
+            guard let json = (try? response.value?.mapJSON(failsOnEmptyData: true)) as? [String: Any],
+                let direccionNormalizada = json["direccionNormalizada"] as? String,
+                let contenido = json["contenido"] as? Array<[String: String]>,
+                let fuente = json["fuente"] as? String,
+                let claseId = json["claseId"] as? String,
+                let clase = json["clase"] as? String,
+                let fechaAlta = json["fechaAlta"] as? String,
+                let fechaActualizacion = json["fechaActualizacion"] as? String,
+                let idForaneo = json["idForaneo"] as? String,
+                let fechaUltimaModificacion = json["fechaUltimaModificacion"] as? String,
+                let ubicacion = json["ubicacion"] as? [String: String],
+                let id = json["id"] as? String else {
                     XCTFail("Error al parsear la respuesta de la API de lugares")
 
                     return
