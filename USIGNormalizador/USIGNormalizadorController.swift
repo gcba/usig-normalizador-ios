@@ -244,7 +244,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupActions() {
-        let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
+        let attributes = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
 
         let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
         let pinAction = PinAction(cell: pinCell, isVisible: showPin)
@@ -256,7 +256,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setInitialValue() {
-        if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
+        if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).count > 0 {
             searchController.searchBar.textField?.rx.value.onNext(initialValue.components(separatedBy: ",").dropLast().joined(separator: ","))
         }
     }
@@ -295,7 +295,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count >= minCharactersNormalization { return true }
+        if let text = value, text.trimmingCharacters(in: whitespace).count >= minCharactersNormalization { return true }
         else  {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
@@ -416,10 +416,10 @@ public class USIGNormalizadorController: UIViewController {
                 }
                 
                 let isEqual = equalItem != nil
-                let isShort = text.characters.count < self.minCharactersNormalization
+                let isShort = text.count < self.minCharactersNormalization
                 
                 if !isShort {
-                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
+                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
                 }
                 
                 self.actions[actionIndex].isVisible.value = !isEqual && !isShort
@@ -465,11 +465,17 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let label = result.label {
-                cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
-                cell.detailTextLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text, fontSize: 12)
+            if let query = searchController.searchBar.textField?.text {
+                if let label = result.label {
+                    cell.textLabel?.attributedText = label.highlight(query)
+                    cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                }
+                else {
+                    cell.textLabel?.attributedText = address.highlight(query)
+                    cell.detailTextLabel?.attributedText = nil
+                }
             } else {
-                cell.textLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text)
+                cell.textLabel?.attributedText = nil
                 cell.detailTextLabel?.attributedText = nil
             }
             
@@ -519,7 +525,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let title: String
-        let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
+        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
 
         switch state {
         case .empty:
@@ -535,7 +541,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let description: String
-        let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
+        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
 
         switch state {
         case .empty:
@@ -560,8 +566,8 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
 private extension String {
     func highlight(range boldRange: NSRange, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
-        let bold = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: fontSize)]
-        let nonBold = [NSFontAttributeName: UIFont.systemFont(ofSize: fontSize)]
+        let bold = [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: fontSize)]
+        let nonBold = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: fontSize)]
         let attributedString = NSMutableAttributedString(string: self, attributes: nonBold)
 
         attributedString.setAttributes(bold, range: boldRange)
@@ -569,18 +575,22 @@ private extension String {
         return attributedString
     }
 
-    func highlight(_ text: String?, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
+    func highlight(_ text: String, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
         let haystack = self.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
-        guard let substring = text, let range = haystack.range(of: substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
+        guard let range = haystack.range(of: text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
             return highlight(range: NSRange(location: 0, length: 0))
         }
 
-        let needle = substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let lower16 = range.lowerBound.samePosition(in: haystack.utf16)
-        let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
-
-        return highlight(range: NSRange(location: start, length: needle.characters.count), fontSize: fontSize)
+        let needle = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        if let lower16 = range.lowerBound.samePosition(in: haystack.utf16) {
+            let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
+            
+            return highlight(range: NSRange(location: start, length: needle.count), fontSize: fontSize)
+        }
+        
+        return NSAttributedString(string: text)
     }
     
     func removeSuffix(from address: USIGNormalizadorAddress) -> String {

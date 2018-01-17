@@ -108,7 +108,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
         
         return searchStream
             // Filter by chars
-            .flatMap({ query -> Observable<String?> in query.characters.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
+            .flatMap({ query -> Observable<String?> in query.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
             .flatMap { query in NormalizadorProvider.makeNormalizationRequest(from: query, config: config, apiProvider: apiProvider) }
             .flatMap { item in Observable.from(optional: [getResponse(item)]) }
     }
@@ -187,7 +187,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
         
         return searchStream
             // Filter by chars
-            .flatMap({ query -> Observable<String?> in query.characters.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
+            .flatMap({ query -> Observable<String?> in query.count < config.minCharacters ? Observable.just(nil) : Observable.of(query) })
             // Make EPOK Search request
             .flatMap(makeEpokSearchRequest)
             //  Parse, check and make EPOK GetObjectContent request
