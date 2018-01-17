@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/cocoapods/p/USIGNormalizador.svg)
 [![Build Status](https://img.shields.io/travis/gcba/usig-normalizador-ios/master.svg)](https://travis-ci.org/gcba/usig-normalizador-ios)
 
-Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar) para CABA y AMBA, desarrollado en Swift 3.
+Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar) para CABA y AMBA, desarrollado en Swift 4.
 
 
 ## Instalación
@@ -15,7 +15,7 @@ Cliente iOS del [servicio de normalización de direcciones de USIG](http://servi
 En el `Podfile` del proyecto:
 
 ```ruby
-pod 'USIGNormalizador', '~> 1.0'
+pod 'USIGNormalizador', '~> 2.0'
 ```
 
 
@@ -24,7 +24,7 @@ pod 'USIGNormalizador', '~> 1.0'
 En el `Cartfile` del proyecto:
 
 ```
-github "gcba/usig-normalizador-ios" ~> 1.0
+github "gcba/usig-normalizador-ios" ~> 2.0
 ```
 
 

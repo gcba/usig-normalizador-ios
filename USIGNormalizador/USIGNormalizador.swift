@@ -25,7 +25,7 @@ public class USIGNormalizador: NSObject {
 
     public class func search(query: String, excluding: String? = USIGNormalizadorExclusions.AMBA.rawValue, maxResults: Int = 10, includePlaces: Bool = true,
                              completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
-        let normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>()
+        let normalizationAPIProvider = MoyaProvider<USIGNormalizadorAPI>()
         let normalizationConfig = NormalizadorProviderConfig(excluyendo: excluding, geocodificar: true, max: maxResults, minCharacters: 0)
         let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
         let searchStream = Observable.just(query)
@@ -44,7 +44,7 @@ public class USIGNormalizador: NSObject {
                 normalization: normalizationConfig
             )
 
-            let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: RxMoyaProvider<USIGEpokAPI>(), normalizationAPIProvider: normalizationAPIProvider)
+            let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: MoyaProvider<USIGEpokAPI>(), normalizationAPIProvider: normalizationAPIProvider)
             let epokStream = epokAddressProvider.getStream(from: searchStream)
 
             sources.append(epokStream)
@@ -54,9 +54,9 @@ public class USIGNormalizador: NSObject {
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: { results in
-                let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+                let filteredResults = results.filter { response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty }
 
-                if filteredResults.count == 0 {
+                if filteredResults.isEmpty {
                     for result in results {
                         if let error = result.error {
                             switch error {
@@ -78,9 +78,9 @@ public class USIGNormalizador: NSObject {
                     }
                 }
 
-                completion(Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults)), nil)
+                completion(Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults)), nil)
             })
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
     }
 
     public class func location(latitude: Double, longitude: Double, completion: @escaping (USIGNormalizadorAddress?, USIGNormalizadorError?) -> Void) {
@@ -104,5 +104,15 @@ public class USIGNormalizador: NSObject {
 
             completion(USIGNormalizadorAddress(from: json), nil)
         }
+    }
+}
+
+internal extension String {
+    func removeWhitespace() -> String {
+        return self.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    func removeSuffix(from address: USIGNormalizadorAddress) -> String {
+        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
     }
 }

@@ -34,8 +34,8 @@ public class USIGNormalizadorController: UIViewController {
     public var edit: String?
     
     fileprivate var value: USIGNormalizadorAddress?
-    fileprivate var normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>!
-    fileprivate var epokAPIProvider: RxMoyaProvider<USIGEpokAPI>!
+    fileprivate var normalizationAPIProvider: MoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var epokAPIProvider: MoyaProvider<USIGEpokAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     
@@ -45,7 +45,6 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var contentSection: Int = 1
     fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
-    fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let minCharactersNormalization: Int = 3
     fileprivate let minCharactersEpok: Int = 4
     
@@ -161,20 +160,20 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupAPIProviders() {
-        let requestClosure = { (request: URLRequest, done: RxMoyaProvider.RequestResultClosure) in
-            var mutableRequest = request
-            
-            mutableRequest.cachePolicy = .returnCacheDataElseLoad
-            
-            done(.success(mutableRequest))
-        }
-        
-        normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
+        normalizationAPIProvider = MoyaProvider(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
+            if var mutableRequest = try? endpoint.urlRequest() {
+                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                
+                done(.success(mutableRequest))
+            }
         })
         
-        epokAPIProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
+        epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: MoyaProvider.RequestResultClosure) in
+            if var mutableRequest = try? endpoint.urlRequest() {
+                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                
+                done(.success(mutableRequest))
+            }
         })
     }
 
@@ -188,7 +187,7 @@ public class USIGNormalizadorController: UIViewController {
             .distinctUntilChanged(filterSearch)
             .filter(filterSearch)
             .flatMapLatest { query in Observable.from(optional: query) }
-            .shareReplayLatestWhileConnected()
+            .share(replay: 1)
             .do(onNext: { _ in
                 DispatchQueue.main.async { [unowned self] in
                     if !self.searchController.searchBar.isLoading {
@@ -221,20 +220,20 @@ public class USIGNormalizadorController: UIViewController {
         for action in actions {
             action.isVisible
                 .asObservable()
-                .subscribe(onNext: {[unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
-                .addDisposableTo(disposeBag)
+                .subscribe(onNext: { [unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
+                .disposed(by: disposeBag)
         }
 
         table.rx
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
         
         AddressManager()
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: handleResults)
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
     }
     
     private func setupKeyboardNotifications() {
@@ -244,7 +243,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupActions() {
-        let attributes = [NSFontAttributeName: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
+        let attributes = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
 
         let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
         let pinAction = PinAction(cell: pinCell, isVisible: showPin)
@@ -256,7 +255,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setInitialValue() {
-        if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).characters.count > 0 {
+        if let initialValue = edit, !initialValue.removeWhitespace().isEmpty {
             searchController.searchBar.textField?.rx.value.onNext(initialValue.components(separatedBy: ",").dropLast().joined(separator: ","))
         }
     }
@@ -288,19 +287,19 @@ public class USIGNormalizadorController: UIViewController {
     
     private func filterSearch(_ previousQuery: String?, _ nextQuery: String?) -> Bool {
         if let previous = previousQuery, let next = nextQuery {
-            return previous.trimmingCharacters(in: .whitespacesAndNewlines) == next.trimmingCharacters(in: .whitespacesAndNewlines)
+            return previous.removeWhitespace() == next.removeWhitespace()
         }
         
         return false
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).characters.count >= minCharactersNormalization { return true }
+        if let text = value, text.removeWhitespace().count >= minCharactersNormalization { return true }
         else  {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
             actions[actionIndex!].cell.text = NSAttributedString(string: "")
-            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
+            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.removeWhitespace()
             state = .empty
             results = []
             
@@ -311,7 +310,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func handleResults(_ results: [USIGNormalizadorResponse]) {
-        let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+        let filteredResults = results.filter { response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty }
         
         self.results = []
         
@@ -321,7 +320,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        if filteredResults.count == 0 {
+        if filteredResults.isEmpty {
             for result in results {
                 if let error = result.error {
                     switch error {
@@ -353,8 +352,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        
-        self.results = Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults))
+        self.results = Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults))
         
         reloadTable(sections: [contentSection])
     }
@@ -410,16 +408,16 @@ public class USIGNormalizadorController: UIViewController {
             
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
-                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
+                let text = self.searchController.searchBar.textField?.text?.removeWhitespace() {
                 let equalItem = self.results.first { [unowned self] item in
                     self.showDetails ? item.address == text.uppercased() : item.address.removeSuffix(from: item) == text.uppercased()
                 }
                 
                 let isEqual = equalItem != nil
-                let isShort = text.characters.count < self.minCharactersNormalization
+                let isShort = text.count < self.minCharactersNormalization
                 
                 if !isShort {
-                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
+                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
                 }
                 
                 self.actions[actionIndex].isVisible.value = !isEqual && !isShort
@@ -465,11 +463,17 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let label = result.label {
-                cell.textLabel?.attributedText = label.highlight(searchController.searchBar.textField?.text)
-                cell.detailTextLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text, fontSize: 12)
+            if let query = searchController.searchBar.textField?.text {
+                if let label = result.label {
+                    cell.textLabel?.attributedText = label.highlight(query)
+                    cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                }
+                else {
+                    cell.textLabel?.attributedText = address.highlight(query)
+                    cell.detailTextLabel?.attributedText = nil
+                }
             } else {
-                cell.textLabel?.attributedText = address.highlight(searchController.searchBar.textField?.text)
+                cell.textLabel?.attributedText = nil
                 cell.detailTextLabel?.attributedText = nil
             }
             
@@ -514,12 +518,12 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
 
 extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     public func emptyDataSetShouldBeForced(toDisplay scrollView: UIScrollView!) -> Bool {
-        return results.count == 0
+        return results.isEmpty
     }
 
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let title: String
-        let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
+        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
 
         switch state {
         case .empty:
@@ -535,7 +539,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let description: String
-        let attributes = [NSFontAttributeName: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
+        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
 
         switch state {
         case .empty:
@@ -560,8 +564,8 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
 private extension String {
     func highlight(range boldRange: NSRange, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
-        let bold = [NSFontAttributeName: UIFont.boldSystemFont(ofSize: fontSize)]
-        let nonBold = [NSFontAttributeName: UIFont.systemFont(ofSize: fontSize)]
+        let bold = [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: fontSize)]
+        let nonBold = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: fontSize)]
         let attributedString = NSMutableAttributedString(string: self, attributes: nonBold)
 
         attributedString.setAttributes(bold, range: boldRange)
@@ -569,22 +573,22 @@ private extension String {
         return attributedString
     }
 
-    func highlight(_ text: String?, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
-        let haystack = self.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    func highlight(_ text: String, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
+        let haystack = self.removeWhitespace().lowercased()
 
-        guard let substring = text, let range = haystack.range(of: substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
+        guard let range = haystack.range(of: text.removeWhitespace().lowercased()) else {
             return highlight(range: NSRange(location: 0, length: 0))
         }
 
-        let needle = substring.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let lower16 = range.lowerBound.samePosition(in: haystack.utf16)
-        let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
-
-        return highlight(range: NSRange(location: start, length: needle.characters.count), fontSize: fontSize)
-    }
-    
-    func removeSuffix(from address: USIGNormalizadorAddress) -> String {
-        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
+        let needle = text.removeWhitespace().lowercased()
+        
+        if let lower16 = range.lowerBound.samePosition(in: haystack.utf16) {
+            let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
+            
+            return highlight(range: NSRange(location: start, length: needle.count), fontSize: fontSize)
+        }
+        
+        return NSAttributedString(string: text)
     }
 }
 
