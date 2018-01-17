@@ -106,3 +106,13 @@ public class USIGNormalizador: NSObject {
         }
     }
 }
+
+internal extension String {
+    func removeWhitespace() -> String {
+        return self.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    func removeSuffix(from address: USIGNormalizadorAddress) -> String {
+        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
+    }
+}

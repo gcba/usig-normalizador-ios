@@ -83,7 +83,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
     let apiProvider: Reactive<MoyaProvider<API>>
     
     class func makeNormalizationRequest(from query: String, config: NormalizadorProviderConfig, apiProvider: Reactive<MoyaProvider<USIGNormalizadorAPI>>) -> Observable<Any> {
-        let address = query.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let address = query.removeWhitespace().uppercased()
         let request = USIGNormalizadorAPI.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
         
         return apiProvider

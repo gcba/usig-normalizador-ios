@@ -26,14 +26,14 @@ public struct USIGNormalizadorAddress {
     init(from json: [String: Any]) {
         let coordinates = json["coordenadas"] as? [String: Any]
 
-        self.address = (json["direccion"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        self.street = (json["nombre_calle"] as! String).trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        self.address = (json["direccion"] as! String).removeWhitespace().uppercased()
+        self.street = (json["nombre_calle"] as! String).removeWhitespace().uppercased()
         self.number = json["altura"] as? Int
-        self.type = (json["tipo"] as! String).trimmingCharacters(in: .whitespacesAndNewlines)
-        self.corner = (json["nombre_calle_cruce"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.districtCode = (json["cod_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.districtName = (json["nombre_partido"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        self.localityName = (json["nombre_localidad"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        self.type = (json["tipo"] as! String).removeWhitespace()
+        self.corner = (json["nombre_calle_cruce"] as? String)?.removeWhitespace()
+        self.districtCode = (json["cod_partido"] as? String)?.removeWhitespace()
+        self.districtName = (json["nombre_partido"] as? String)?.removeWhitespace()
+        self.localityName = (json["nombre_localidad"] as? String)?.removeWhitespace()
         self.label = json["label"] as? String
         self.source = json["source"] as? TargetType.Type ?? USIGNormalizadorAPI.self
 

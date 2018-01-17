@@ -45,7 +45,6 @@ public class USIGNormalizadorController: UIViewController {
     fileprivate var contentSection: Int = 1
     fileprivate var state: SearchState = .empty
     fileprivate let disposeBag: DisposeBag = DisposeBag()
-    fileprivate let whitespace: CharacterSet = .whitespacesAndNewlines
     fileprivate let minCharactersNormalization: Int = 3
     fileprivate let minCharactersEpok: Int = 4
     
@@ -256,7 +255,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setInitialValue() {
-        if let initialValue = edit, !initialValue.trimmingCharacters(in: whitespace).isEmpty {
+        if let initialValue = edit, !initialValue.removeWhitespace().isEmpty {
             searchController.searchBar.textField?.rx.value.onNext(initialValue.components(separatedBy: ",").dropLast().joined(separator: ","))
         }
     }
@@ -288,19 +287,19 @@ public class USIGNormalizadorController: UIViewController {
     
     private func filterSearch(_ previousQuery: String?, _ nextQuery: String?) -> Bool {
         if let previous = previousQuery, let next = nextQuery {
-            return previous.trimmingCharacters(in: .whitespacesAndNewlines) == next.trimmingCharacters(in: .whitespacesAndNewlines)
+            return previous.removeWhitespace() == next.removeWhitespace()
         }
         
         return false
     }
 
     private func filterSearch(_ value: String?) -> Bool {
-        if let text = value, text.trimmingCharacters(in: whitespace).count >= minCharactersNormalization { return true }
+        if let text = value, text.removeWhitespace().count >= minCharactersNormalization { return true }
         else  {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
             actions[actionIndex!].cell.text = NSAttributedString(string: "")
-            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.trimmingCharacters(in: whitespace)
+            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.removeWhitespace()
             state = .empty
             results = []
             
@@ -410,7 +409,7 @@ public class USIGNormalizadorController: UIViewController {
             
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
-                let text = self.searchController.searchBar.textField?.text?.trimmingCharacters(in: self.whitespace) {
+                let text = self.searchController.searchBar.textField?.text?.removeWhitespace() {
                 let equalItem = self.results.first { [unowned self] item in
                     self.showDetails ? item.address == text.uppercased() : item.address.removeSuffix(from: item) == text.uppercased()
                 }
@@ -576,13 +575,13 @@ private extension String {
     }
 
     func highlight(_ text: String, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
-        let haystack = self.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let haystack = self.removeWhitespace().lowercased()
 
-        guard let range = haystack.range(of: text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
+        guard let range = haystack.range(of: text.removeWhitespace().lowercased()) else {
             return highlight(range: NSRange(location: 0, length: 0))
         }
 
-        let needle = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let needle = text.removeWhitespace().lowercased()
         
         if let lower16 = range.lowerBound.samePosition(in: haystack.utf16) {
             let start = haystack.utf16.distance(from: haystack.utf16.startIndex, to: lower16)
@@ -591,10 +590,6 @@ private extension String {
         }
         
         return NSAttributedString(string: text)
-    }
-    
-    func removeSuffix(from address: USIGNormalizadorAddress) -> String {
-        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
     }
 }
 
