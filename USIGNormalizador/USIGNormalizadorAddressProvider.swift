@@ -23,9 +23,7 @@ internal protocol USIGNormalizadorProvider {
 
 extension USIGNormalizadorProvider {
     func getResponse(from result: Any) -> USIGNormalizadorResponse {
-        guard let json = result as? [String: Any] else {
-            return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error"))
-        }
+        guard let json = result as? [String: Any] else { return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error")) }
         
         if let message = json["errorMessage"] as? String {
             if message.lowercased().contains("calle inexistente") || message.lowercased().contains("no existe a la altura") {
@@ -90,7 +88,7 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
             .request(request)
             .asObservable()
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json"))))
+            .catchErrorJustReturn([:] as [String: Any])
     }
 
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]> {
@@ -110,9 +108,9 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
             .flatMap { item -> Observable<[USIGNormalizadorResponse]> in
                 guard !(item is USIGNormalizadorResponse) else { return Observable.just([item as! USIGNormalizadorResponse]) }
                 
-                let responses: [USIGNormalizadorResponse] = [getResponse(item)]
+                let response: [USIGNormalizadorResponse] = [getResponse(item)]
                 
-                return Observable.from(optional: responses)
+                return Observable.from(optional: response)
         }
     }
 }
@@ -146,7 +144,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .asObservable()
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse EPOK Search json"))))
+            .catchErrorJustReturn([:] as [String: Any])
     }
     
     private func makeEpokGetObjectContentRequest(_ id: String) -> Observable<Any> {
@@ -156,17 +154,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .request(request)
             .asObservable()
             .mapJSON()
-            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse EPOK GetObjectContent json"))))
-    }
-    
-    private func filterNormalizationResults(_ value: Any) -> Bool {
-        if let json = value as? [String: Any],
-            (json["direccionesNormalizadas"] as? [[String: Any]] == nil || (json["direccionesNormalizadas"] as! [[String: Any]]).isEmpty),
-            json["errorMessage"] as? String != nil {
-            return false
-        }
-        
-        return true
+            .catchErrorJustReturn([:] as [String: Any])
     }
     
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]> {
@@ -175,7 +163,6 @@ internal class EpokProvider: USIGNormalizadorProvider {
         let makeEpokSearchRequest = self.makeEpokSearchRequest
         let normalizationConfig = self.config.normalization
         let normalizationAPIProvider = self.normalizationAPIProvider
-        let filterNormalizationResults = self.filterNormalizationResults
         let makeEpokGetObjectContentRequest = self.makeEpokGetObjectContentRequest
         let getResponse = self.getResponse
         
@@ -191,7 +178,6 @@ internal class EpokProvider: USIGNormalizadorProvider {
             //  Parse, check and make EPOK GetObjectContent request
             .flatMap { result -> Observable<[Any]> in
                 guard !(result is USIGNormalizadorResponse) else { return Observable.just([result as! USIGNormalizadorResponse]) }
-                guard !(result is [USIGNormalizadorResponse]) else { return Observable.just(result as! [USIGNormalizadorResponse]) }
                 
                 guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, !instances.isEmpty else {
                     return Observable.just([USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot cast EPOK SearchRequest json arrays"))])
@@ -240,35 +226,36 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     }
                 }
                 
-                guard !requests.isEmpty else { return Observable.just([]) } // No EPOK object has a normalized address
+                guard !requests.isEmpty else { return Observable.just([] as! [USIGNormalizadorResponse]) } // No EPOK object has a normalized address
                 
                 // Parse, check and reduce addresses
                 return Observable.from(requests)
                     .merge()
                     .toArray()
-                    .filter(filterNormalizationResults)
                     .scan([] as [[String: Any]], accumulator: { (matrix, item) -> [[String: Any]] in
-                        let responses = item as! [[String: Any]]
+                        guard let responses = item as? [[String: Any]] else { return [] }
+                    
                         var normalizationResponses: [[String: Any]] = []
                         
                         for (var response) in responses {
-                            var normalizedAddresses = response["direccionesNormalizadas"] as! [[String: Any]] // We already checked -> filterNormalizationResults
-                            
-                            for (addressIndex, address) in normalizedAddresses.enumerated() {
-                                if let fullAddress = (address["direccion"] as? String)?.uppercased(), let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
-                                    normalizedAddresses[addressIndex]["label"] = places[key]
-                                    response["direccionesNormalizadas"] = normalizedAddresses
+                            if var normalizedAddresses = response["direccionesNormalizadas"] as? [[String: Any]], !normalizedAddresses.isEmpty, response["errorMessage"] == nil {
+                                for (addressIndex, address) in normalizedAddresses.enumerated() {
+                                    if let fullAddress = (address["direccion"] as? String)?.uppercased(),
+                                        let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
+                                        normalizedAddresses[addressIndex]["label"] = places[key]
+                                        response["direccionesNormalizadas"] = normalizedAddresses
+                                    }
                                 }
+                                
+                                normalizationResponses.append(response)
                             }
-                            
-                            normalizationResponses.append(response)
                         }
                         
                         return normalizationResponses
                     })
                     // Build response objects
                     .flatMap({ array -> Observable<[USIGNormalizadorResponse]> in
-                        let responses: [USIGNormalizadorResponse] = array.map {item in getResponse(item) }
+                        let responses: [USIGNormalizadorResponse] = array.filter {item in !item.isEmpty }.map {item in getResponse(item) }
                         
                         return Observable.of(responses)
                     })

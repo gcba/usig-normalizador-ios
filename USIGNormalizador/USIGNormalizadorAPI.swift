@@ -75,7 +75,7 @@ extension USIGNormalizadorAPI: TargetType {
             params["maxOptions"] = max
             params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added at all
             params["tipoResultado"] = "calle_altura_calle_y_calle"
-            
+
             return .requestParameters(parameters: params, encoding: URLEncoding.default)
         case .normalizarCoordenadas(let latitud, let longitud):
             let params: [String: Any] = ["lat": latitud, "lng": longitud, "tipoResultado": "calle_altura_calle_y_calle"]
@@ -189,5 +189,4 @@ internal struct USIGNormalizadorResponse {
     let addresses: [USIGNormalizadorAddress]?
     let error: USIGNormalizadorError?
 }
-
 
