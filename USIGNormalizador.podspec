@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
     spec.name = 'USIGNormalizador'
-    spec.version = '1.0.0'
+    spec.version = '2.0.0'
     spec.summary = 'Cliente iOS del normalizador de direcciones de USIG'
     spec.homepage = 'https://github.com/gcba/usig-normalizador-ios'
 
