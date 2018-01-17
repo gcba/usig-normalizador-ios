@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.0 - 17/01/2018
+
+### Changed
+- Migrated to Swift 4. **[breaking]**
+
 ## v1.0.0 - 16/01/2018
 
 ### Added
@@ -10,7 +15,7 @@
 
 ### Changed
 - Refactored to support multiple API providers.
-- Errors do not include the response and response code anymore.
+- Errors do not include the response and response code anymore. **[breaking]**
 
 ### Fixed
 - UI issue in iOS 11.
