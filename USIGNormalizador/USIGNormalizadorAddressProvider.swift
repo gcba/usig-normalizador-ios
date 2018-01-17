@@ -36,7 +36,7 @@ extension USIGNormalizadorProvider {
             }
         }
         
-        guard var addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, addresses.count > 0 else {
+        guard var addresses = json["direccionesNormalizadas"] as? Array<[String: Any]>, !addresses.isEmpty else {
             return USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Unknown error"))
         }
         
@@ -161,7 +161,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
     
     private func filterNormalizationResults(_ value: Any) -> Bool {
         if let json = value as? [String: Any],
-            (json["direccionesNormalizadas"] as? [[String: Any]] == nil || (json["direccionesNormalizadas"] as! [[String: Any]]).count == 0),
+            (json["direccionesNormalizadas"] as? [[String: Any]] == nil || (json["direccionesNormalizadas"] as! [[String: Any]]).isEmpty),
             json["errorMessage"] as? String != nil {
             return false
         }
@@ -193,7 +193,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 guard !(result is USIGNormalizadorResponse) else { return Observable.just([result as! USIGNormalizadorResponse]) }
                 guard !(result is [USIGNormalizadorResponse]) else { return Observable.just(result as! [USIGNormalizadorResponse]) }
                 
-                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, instances.count > 0 else {
+                guard let json = result as? [String: Any], let instances = json["instancias"] as? Array<[String: String]>, !instances.isEmpty else {
                     return Observable.just([USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot cast EPOK SearchRequest json arrays"))])
                 }
                 
@@ -240,7 +240,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     }
                 }
                 
-                guard requests.count > 0 else { return Observable.just([]) } // No EPOK object has a normalized address
+                guard !requests.isEmpty else { return Observable.just([]) } // No EPOK object has a normalized address
                 
                 // Parse, check and reduce addresses
                 return Observable.from(requests)

@@ -54,9 +54,9 @@ public class USIGNormalizador: NSObject {
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: { results in
-                let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+                let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty })
 
-                if filteredResults.count == 0 {
+                if filteredResults.isEmpty {
                     for result in results {
                         if let error = result.error {
                             switch error {

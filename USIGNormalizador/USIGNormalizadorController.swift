@@ -256,7 +256,7 @@ public class USIGNormalizadorController: UIViewController {
     }
 
     private func setInitialValue() {
-        if let initialValue = edit, initialValue.trimmingCharacters(in: whitespace).count > 0 {
+        if let initialValue = edit, !initialValue.trimmingCharacters(in: whitespace).isEmpty {
             searchController.searchBar.textField?.rx.value.onNext(initialValue.components(separatedBy: ",").dropLast().joined(separator: ","))
         }
     }
@@ -311,7 +311,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func handleResults(_ results: [USIGNormalizadorResponse]) {
-        let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && response.addresses!.count > 0 })
+        let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty })
         
         self.results = []
         
@@ -321,7 +321,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        if filteredResults.count == 0 {
+        if filteredResults.isEmpty {
             for result in results {
                 if let error = result.error {
                     switch error {
@@ -520,7 +520,7 @@ extension USIGNormalizadorController: UISearchControllerDelegate, UISearchBarDel
 
 extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     public func emptyDataSetShouldBeForced(toDisplay scrollView: UIScrollView!) -> Bool {
-        return results.count == 0
+        return results.isEmpty
     }
 
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
