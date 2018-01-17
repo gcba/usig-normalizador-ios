@@ -14,7 +14,7 @@ Pod::Spec.new do |spec|
     spec.resources = ['USIGNormalizador/USIGNormalizador.storyboard', 'USIGNormalizadorResources/Assets.xcassets']
 
     spec.frameworks = 'Foundation', 'UIKit'
-    spec.dependency 'RxCocoa', '~> 3.6'
-    spec.dependency 'Moya/RxSwift', '~> 8.0'
+    spec.dependency 'RxCocoa', '~> 4.1'
+    spec.dependency 'Moya/RxSwift', '~> 10.0'
     spec.dependency 'DZNEmptyDataSet', '~> 1.8'
 end
