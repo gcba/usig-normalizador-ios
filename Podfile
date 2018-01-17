@@ -14,8 +14,8 @@ target 'USIGNormalizador' do
   use_frameworks!
 
   # Pods for USIGNormalizador
-  pod 'RxCocoa', '~> 3.6'
-  pod 'Moya/RxSwift', '~> 8.0'
+  pod 'RxCocoa', '~> 4.1'
+  pod 'Moya/RxSwift', '~> 10.0'
   pod 'DZNEmptyDataSet', '~> 1.8'
 
   target 'USIGNormalizadorTests' do
