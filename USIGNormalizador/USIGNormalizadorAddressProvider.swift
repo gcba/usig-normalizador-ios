@@ -254,11 +254,11 @@ internal class EpokProvider: USIGNormalizadorProvider {
                         return normalizationResponses
                     })
                     // Build response objects
-                    .flatMap({ array -> Observable<[USIGNormalizadorResponse]> in
+                    .flatMap { array -> Observable<[USIGNormalizadorResponse]> in
                         let responses: [USIGNormalizadorResponse] = array.filter {item in !item.isEmpty }.map {item in getResponse(item) }
                         
                         return Observable.of(responses)
-                    })
+                    }
         }
     }
 }

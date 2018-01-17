@@ -19,8 +19,8 @@ internal class AddressManager: USIGNormalizadorAddressManager {
     func getStreams(from sources: [Observable<[USIGNormalizadorResponse]>]) -> Observable<[USIGNormalizadorResponse]> {
         let streams = sources.flatMap { stream in stream.observeOn(ConcurrentMainScheduler.instance) }
         
-        return Observable.zip(streams).flatMap({ matrix -> Observable<[USIGNormalizadorResponse]> in
+        return Observable.zip(streams).flatMap { matrix -> Observable<[USIGNormalizadorResponse]> in
             return Observable.of(matrix.reduce([] as [USIGNormalizadorResponse], +))
-        })
+        }
     }
 }

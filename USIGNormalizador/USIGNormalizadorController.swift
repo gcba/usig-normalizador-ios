@@ -220,7 +220,7 @@ public class USIGNormalizadorController: UIViewController {
         for action in actions {
             action.isVisible
                 .asObservable()
-                .subscribe(onNext: {[unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
+                .subscribe(onNext: { [unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
                 .disposed(by: disposeBag)
         }
 
@@ -310,7 +310,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func handleResults(_ results: [USIGNormalizadorResponse]) {
-        let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty })
+        let filteredResults = results.filter { response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty }
         
         self.results = []
         
@@ -352,7 +352,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        self.results = Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults))
+        self.results = Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults))
         
         reloadTable(sections: [contentSection])
     }

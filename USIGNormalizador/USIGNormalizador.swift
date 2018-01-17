@@ -54,7 +54,7 @@ public class USIGNormalizador: NSObject {
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: { results in
-                let filteredResults = results.filter({ response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty })
+                let filteredResults = results.filter { response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty }
 
                 if filteredResults.isEmpty {
                     for result in results {
@@ -78,7 +78,7 @@ public class USIGNormalizador: NSObject {
                     }
                 }
 
-                completion(Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults)), nil)
+                completion(Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults)), nil)
             })
             .disposed(by: disposeBag)
     }
