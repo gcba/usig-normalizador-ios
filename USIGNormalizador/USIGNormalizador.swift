@@ -25,7 +25,7 @@ public class USIGNormalizador: NSObject {
 
     public class func search(query: String, excluding: String? = USIGNormalizadorExclusions.AMBA.rawValue, maxResults: Int = 10, includePlaces: Bool = true,
                              completion: @escaping ([USIGNormalizadorAddress]?, USIGNormalizadorError?) -> Void) {
-        let normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>()
+        let normalizationAPIProvider = MoyaProvider<USIGNormalizadorAPI>()
         let normalizationConfig = NormalizadorProviderConfig(excluyendo: excluding, geocodificar: true, max: maxResults, minCharacters: 0)
         let normalizationAddressProvider = NormalizadorProvider(with: normalizationConfig, api: normalizationAPIProvider)
         let searchStream = Observable.just(query)
@@ -44,7 +44,7 @@ public class USIGNormalizador: NSObject {
                 normalization: normalizationConfig
             )
 
-            let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: RxMoyaProvider<USIGEpokAPI>(), normalizationAPIProvider: normalizationAPIProvider)
+            let epokAddressProvider = EpokProvider(with: epokConfig, apiProvider: MoyaProvider<USIGEpokAPI>(), normalizationAPIProvider: normalizationAPIProvider)
             let epokStream = epokAddressProvider.getStream(from: searchStream)
 
             sources.append(epokStream)
@@ -80,7 +80,7 @@ public class USIGNormalizador: NSObject {
 
                 completion(Array(filteredResults.flatMap({ response in response.addresses! }).prefix(maxResults)), nil)
             })
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
     }
 
     public class func location(latitude: Double, longitude: Double, completion: @escaping (USIGNormalizadorAddress?, USIGNormalizadorError?) -> Void) {

@@ -34,8 +34,8 @@ public class USIGNormalizadorController: UIViewController {
     public var edit: String?
     
     fileprivate var value: USIGNormalizadorAddress?
-    fileprivate var normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>!
-    fileprivate var epokAPIProvider: RxMoyaProvider<USIGEpokAPI>!
+    fileprivate var normalizationAPIProvider: MoyaProvider<USIGNormalizadorAPI>!
+    fileprivate var epokAPIProvider: MoyaProvider<USIGEpokAPI>!
     fileprivate var onDismissCallback: ((UIViewController) -> Void)?
     fileprivate var searchController: UISearchController!
     
@@ -161,7 +161,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupAPIProviders() {
-        let requestClosure = { (request: URLRequest, done: RxMoyaProvider.RequestResultClosure) in
+        let requestClosure = { (request: URLRequest, done: MoyaProvider.RequestResultClosure) in
             var mutableRequest = request
             
             mutableRequest.cachePolicy = .returnCacheDataElseLoad
@@ -169,12 +169,16 @@ public class USIGNormalizadorController: UIViewController {
             done(.success(mutableRequest))
         }
         
-        normalizationAPIProvider = RxMoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
+        normalizationAPIProvider = MoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
+            if let urlRequest = try? endpoint.urlRequest() {
+                requestClosure(urlRequest, done)
+            }
         })
         
-        epokAPIProvider = RxMoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: RxMoyaProvider.RequestResultClosure) in
-            requestClosure(endpoint.urlRequest!, done)
+        epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: MoyaProvider.RequestResultClosure) in
+            if let urlRequest = try? endpoint.urlRequest() {
+                requestClosure(urlRequest, done)
+            }
         })
     }
 
@@ -188,7 +192,7 @@ public class USIGNormalizadorController: UIViewController {
             .distinctUntilChanged(filterSearch)
             .filter(filterSearch)
             .flatMapLatest { query in Observable.from(optional: query) }
-            .shareReplayLatestWhileConnected()
+            .share(replay: 1)
             .do(onNext: { _ in
                 DispatchQueue.main.async { [unowned self] in
                     if !self.searchController.searchBar.isLoading {
@@ -222,19 +226,19 @@ public class USIGNormalizadorController: UIViewController {
             action.isVisible
                 .asObservable()
                 .subscribe(onNext: {[unowned self] _ in self.table.reloadSections(IndexSet(integer: self.actionsSection), with: .none) })
-                .addDisposableTo(disposeBag)
+                .disposed(by: disposeBag)
         }
 
         table.rx
             .itemSelected
             .subscribe(onNext: handleSelectedItem)
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
         
         AddressManager()
             .getStreams(from: sources)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: handleResults)
-            .addDisposableTo(disposeBag)
+            .disposed(by: disposeBag)
     }
     
     private func setupKeyboardNotifications() {

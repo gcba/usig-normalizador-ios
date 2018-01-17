@@ -15,7 +15,7 @@ internal protocol USIGNormalizadorProvider {
     associatedtype Config
     
     var config: Config { get }
-    var apiProvider: RxMoyaProvider<API> { get }
+    var apiProvider: MoyaProvider<API> { get }
     
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]>
     func getResponse(from result: Any) -> USIGNormalizadorResponse
@@ -74,15 +74,15 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
     typealias API = USIGNormalizadorAPI
     typealias Config = NormalizadorProviderConfig
     
-    required init(with config: NormalizadorProviderConfig, api apiProvider: RxMoyaProvider<API>) {
+    required init(with config: NormalizadorProviderConfig, api apiProvider: MoyaProvider<API>) {
         self.config = config
         self.apiProvider = apiProvider
     }
     
     let config: Config
-    let apiProvider: RxMoyaProvider<API>
+    let apiProvider: MoyaProvider<API>
     
-    class func makeNormalizationRequest(from query: String?, config: NormalizadorProviderConfig, apiProvider: RxMoyaProvider<USIGNormalizadorAPI>) -> Observable<Any> {
+    class func makeNormalizationRequest(from query: String?, config: NormalizadorProviderConfig, apiProvider: MoyaProvider<USIGNormalizadorAPI>) -> Observable<Any> {
         guard let text = query else {
             return Observable.just(USIGNormalizadorResponse(source: API.self, addresses: [], error: nil))
         }
@@ -90,14 +90,11 @@ internal class NormalizadorProvider: USIGNormalizadorProvider {
         let address = text.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         let request = USIGNormalizadorAPI.normalizar(direccion: address, excluyendo: config.excluyendo, geocodificar: config.geocodificar, max: config.max)
         
-        return apiProvider
+        return apiProvider.rx
             .request(request)
             .mapJSON()
-            .catchErrorJustReturn(
-                Observable.just(
-                    USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json"))
-                )
-        )
+            .asObservable()
+            .catchErrorJustReturn(Observable.just(USIGNormalizadorResponse(source: API.self, addresses: nil, error: .other("Cannot parse Normalization json"))))
     }
 
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]> {
@@ -118,15 +115,15 @@ internal class EpokProvider: USIGNormalizadorProvider {
     typealias API = USIGEpokAPI
     typealias Config = EpokProviderConfig
 
-    required init(with config: Config, apiProvider: RxMoyaProvider<API>, normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>) {
+    required init(with config: Config, apiProvider: MoyaProvider<API>, normalizationAPIProvider: MoyaProvider<USIGNormalizadorAPI>) {
         self.config = config
         self.apiProvider = apiProvider
         self.normalizationAPIProvider = normalizationAPIProvider
     }
     
     let config: Config
-    let apiProvider: RxMoyaProvider<API>
-    let normalizationAPIProvider: RxMoyaProvider<USIGNormalizadorAPI>
+    let apiProvider: MoyaProvider<API>
+    let normalizationAPIProvider: MoyaProvider<USIGNormalizadorAPI>
     
     private func makeEpokSearchRequest(_ query: String?) -> Observable<Any> {
         guard let text = query else {
@@ -143,9 +140,10 @@ internal class EpokProvider: USIGNormalizadorProvider {
             total: config.total
         )
         
-        return apiProvider
+        return apiProvider.rx
             .request(request)
             .mapJSON()
+            .asObservable()
             .catchErrorJustReturn(
                 Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK Search json")))
         )
@@ -158,9 +156,10 @@ internal class EpokProvider: USIGNormalizadorProvider {
         
         let request = USIGEpokAPI.getObjectContent(id: id)
         
-        return apiProvider
+        return apiProvider.rx
             .request(request)
             .mapJSON()
+            .asObservable()
             .catchErrorJustReturn(
                 Observable.just(USIGNormalizadorResponse(source: USIGEpokAPI.self, addresses: nil, error: .other("Cannot parse EPOK GetObjectContent json")))
         )

@@ -65,8 +65,9 @@ extension USIGNormalizadorAPI: TargetType {
         }
     }
 
-    public var task: Task { return .request }
+    public var headers: [String : String]? { return ["Accept": "application/json"] }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
+    public var task: Task { return .requestPlain }
 }
 
 // MARK: - USIG Epok API
@@ -127,9 +128,10 @@ extension USIGEpokAPI: TargetType {
         }
     }
 
-    public var sampleData: Data { return Data() }
-    public var task: Task { return .request }
+    public var headers: [String : String]? { return ["Accept": "application/json"] }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
+    public var task: Task { return .requestPlain }
+    public var sampleData: Data { return Data() }
 }
 
 // MARK: - USIG Response
