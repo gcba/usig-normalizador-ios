@@ -161,23 +161,19 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupAPIProviders() {
-        let requestClosure = { (request: URLRequest, done: MoyaProvider.RequestResultClosure) in
-            var mutableRequest = request
-            
-            mutableRequest.cachePolicy = .returnCacheDataElseLoad
-            
-            done(.success(mutableRequest))
-        }
-        
-        normalizationAPIProvider = MoyaProvider<USIGNormalizadorAPI>(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
-            if let urlRequest = try? endpoint.urlRequest() {
-                requestClosure(urlRequest, done)
+        normalizationAPIProvider = MoyaProvider(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
+            if var mutableRequest = try? endpoint.urlRequest() {
+                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                
+                done(.success(mutableRequest))
             }
         })
         
         epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: MoyaProvider.RequestResultClosure) in
-            if let urlRequest = try? endpoint.urlRequest() {
-                requestClosure(urlRequest, done)
+            if var mutableRequest = try? endpoint.urlRequest() {
+                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                
+                done(.success(mutableRequest))
             }
         })
     }

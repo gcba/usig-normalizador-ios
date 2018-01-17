@@ -64,10 +64,28 @@ extension USIGNormalizadorAPI: TargetType {
                 "nombre_localidad\":\"CABA\",\"nombre_partido\":\"CABA\",\"tipo\":\"calle\"}]}").data(using: .utf8)!
         }
     }
-
+   
+    public var task: Task {
+        switch self {
+        case .normalizar(let direccion, let excluyendo, let geocodificar, let max):
+            var params: [String: Any] = [:]
+            
+            params["direccion"] = direccion
+            params["geocodificar"] = geocodificar ? "true" : "false"
+            params["maxOptions"] = max
+            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added at all
+            params["tipoResultado"] = "calle_altura_calle_y_calle"
+            
+            return .requestParameters(parameters: params, encoding: URLEncoding.default)
+        case .normalizarCoordenadas(let latitud, let longitud):
+            let params: [String: Any] = ["lat": latitud, "lng": longitud, "tipoResultado": "calle_altura_calle_y_calle"]
+            
+            return .requestParameters(parameters: params, encoding: URLEncoding.default)
+        }
+    }
+    
     public var headers: [String : String]? { return ["Accept": "application/json"] }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
-    public var task: Task { return .requestPlain }
 }
 
 // MARK: - USIG Epok API
@@ -130,8 +148,38 @@ extension USIGEpokAPI: TargetType {
 
     public var headers: [String : String]? { return ["Accept": "application/json"] }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
-    public var task: Task { return .requestPlain }
     public var sampleData: Data { return Data() }
+    
+    public var task: Task {
+        switch self {
+        case .getCategorias:
+            return .requestPlain
+        case .getObjectContent(let id):
+            return .requestParameters(parameters: ["id": id], encoding: URLEncoding.default)
+        case .buscar(let texto, let categoria, let clase, let boundingBox, let start, let limit, let total):
+            var params: [String: Any] = [:]
+            
+            params["texto"] = texto
+            params["categoria"] = categoria
+            params["clase"] = clase
+            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { item in String(item) }.joined(separator: ",") : nil
+            params["start"] = start
+            params["limit"] = limit
+            params["totalFull"] = total != nil ? (total! ? "true" : "false") : nil
+            
+            return .requestParameters(parameters: params, encoding: URLEncoding.default)
+        case .reverseGeocoderLugares(let categorias, let latitud, let longitud, let srid, let radio):
+            var params: [String: Any] = [:]
+            
+            params["categorias"] = categorias.joined(separator: ",")
+            params["y"] = latitud
+            params["x"] = longitud
+            params["srid"] = srid
+            params["radio"] = radio
+            
+            return .requestParameters(parameters: params, encoding: URLEncoding.default)
+        }
+    }
 }
 
 // MARK: - USIG Response
