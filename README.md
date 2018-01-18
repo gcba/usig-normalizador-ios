@@ -120,7 +120,7 @@ searchController.edit = "CALLAO AV. 123"
 
 ### Modalidades
 
-Hay tres modalidades opcionales, que pueden activarse juntas o separadas:
+Hay dos modalidades opcionales, que pueden activarse juntas o separadas:
 
 #### Mostrar pin
 
@@ -129,10 +129,6 @@ Agrega una celda en la parte superior de la tabla con la imagen de un [pin](http
 #### No forzar normalización
 
 Da la posibilidad al usuario de escribir y elegir una calle que no esté entre los resultados de la búsqueda. Muestra una celda arriba de los resultados con el término de búsqueda ingresado, y cuando se la tapea pasa este valor al método `didSelectUnnormalizedAddress`. Se activa cuando el método `shouldForceNormalization` del delegado retorna `false`.
-
-#### Incluir lugares
-
-Incluye lugares en la búsqueda.
 
 
 ### Delegado
