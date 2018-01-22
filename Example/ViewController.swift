@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     fileprivate var showPin = true
     fileprivate var forceNormalization = true
     fileprivate var includePlaces = true
+    fileprivate var cabaOnly = true
 
     // MARK: - Outlets
 
@@ -27,6 +28,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var pinSwitch: UISwitch!
     @IBOutlet weak var mandatorySwitch: UISwitch!
     @IBOutlet weak var placesSwitch: UISwitch!
+    @IBOutlet weak var cabaSwitch: UISwitch!
 
     // MARK: - Actions
 
@@ -40,6 +42,10 @@ class ViewController: UIViewController {
     
     @IBAction func placesSwitchValueChanged(_ sender: Any) {
         includePlaces = placesSwitch.isOn
+    }
+    
+    @IBAction func cabaSwitchValueChanged(_ sender: Any) {
+        cabaOnly = cabaSwitch.isOn
     }
 
     @IBAction func searchButtonTapped(sender: UIButton) {
@@ -85,6 +91,7 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: USIGNormalizadorControllerDelegate {
+    func exclude(_ searchController: USIGNormalizadorController) -> String { return cabaOnly ? USIGNormalizadorExclusions.AMBA.rawValue : "" }
     func shouldShowPin(_ searchController: USIGNormalizadorController) -> Bool { return showPin }
     func shouldForceNormalization(_ searchController: USIGNormalizadorController) -> Bool { return forceNormalization }
     func shouldIncludePlaces(_ searchController: USIGNormalizadorController) -> Bool { return includePlaces }
