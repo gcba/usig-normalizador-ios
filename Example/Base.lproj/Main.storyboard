@@ -122,7 +122,7 @@
                                                 <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="40" id="OCY-he-ig4"/>
-                                                    <constraint firstAttribute="width" constant="200" id="szq-6w-1DI"/>
+                                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="200" id="szq-6w-1DI"/>
                                                 </constraints>
                                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                                 <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -149,7 +149,7 @@
                                                 <rect key="frame" x="87.5" y="33" width="200" height="40"/>
                                                 <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="width" constant="200" id="A8B-Mj-dL0"/>
+                                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="200" id="A8B-Mj-dL0"/>
                                                     <constraint firstAttribute="height" constant="40" id="EDf-Sq-nkh"/>
                                                 </constraints>
                                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
