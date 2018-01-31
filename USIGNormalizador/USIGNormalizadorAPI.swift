@@ -34,23 +34,8 @@ extension USIGNormalizadorAPI: TargetType {
     }
 
     public var method: Moya.Method { return .get }
-
-    public var parameters: [String: Any]? {
-        switch self {
-        case .normalizar(let direccion, let excluyendo, let geocodificar, let max):
-            var params: [String: Any] = [:]
-
-            params["direccion"] = direccion
-            params["geocodificar"] = geocodificar ? "true" : "false"
-            params["maxOptions"] = max
-            params["exclude"] = excluyendo // If excluyendo is nil, the key doesn`t get added at all
-            params["tipoResultado"] = "calle_altura_calle_y_calle"
-
-            return params
-        case .normalizarCoordenadas(let latitud, let longitud):
-            return ["lat": latitud, "lng": longitud, "tipoResultado": "calle_altura_calle_y_calle"]
-        }
-    }
+    public var headers: [String : String]? { return ["Accept": "application/json"] }
+    public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 
     public var sampleData: Data {
         switch self {
@@ -83,9 +68,6 @@ extension USIGNormalizadorAPI: TargetType {
             return .requestParameters(parameters: params, encoding: URLEncoding.default)
         }
     }
-    
-    public var headers: [String : String]? { return ["Accept": "application/json"] }
-    public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
 }
 
 // MARK: - USIG Epok API
@@ -114,38 +96,6 @@ extension USIGEpokAPI: TargetType {
     }
 
     public var method: Moya.Method { return .get }
-
-    public var parameters: [String: Any]? {
-        switch self {
-        case .getCategorias:
-            return nil
-        case .getObjectContent(let id):
-            return ["id": id]
-        case .buscar(let texto, let categoria, let clase, let boundingBox, let start, let limit, let total):
-            var params: [String: Any] = [:]
-
-            params["texto"] = texto
-            params["categoria"] = categoria
-            params["clase"] = clase
-            params["bbox"] = boundingBox != nil ? boundingBox!.flatMap { item in String(item) }.joined(separator: ",") : nil
-            params["start"] = start
-            params["limit"] = limit
-            params["totalFull"] = total != nil ? (total! ? "true" : "false") : nil
-
-            return params
-        case .reverseGeocoderLugares(let categorias, let latitud, let longitud, let srid, let radio):
-            var params: [String: Any] = [:]
-
-            params["categorias"] = categorias.joined(separator: ",")
-            params["y"] = latitud
-            params["x"] = longitud
-            params["srid"] = srid
-            params["radio"] = radio
-
-            return params
-        }
-    }
-
     public var headers: [String : String]? { return ["Accept": "application/json"] }
     public var parameterEncoding: ParameterEncoding { return URLEncoding.default }
     public var sampleData: Data { return Data() }
