@@ -45,7 +45,7 @@ USIGNormalizador.search(query: <Nombre o parte del nombre de una calle>) { resul
 
 ##### excluding (String?)
 
-Localidades a excluir de la búsqueda, separadas por coma. Por defecto se excluyen todas las localidades del AMBA (para poder buscar sólo entre las calles de la Ciudad).
+Localidades a excluir de la búsqueda, separadas por coma. Por defecto se excluyen todas las localidades del AMBA (para obtener resultados sólo de CABA).
 
 ```swift
 USIGNormalizador.search(query: "Callao", excluding: nil) { result, error in
@@ -84,7 +84,7 @@ USIGNormalizador.search(query: "Callao", excluding: nil, maxResults: 7, includeP
 
 ### Búsqueda por coordenadas
 
-Devuelve la dirección de la esquina más próxima a una latitud/longitud.
+Devuelve la dirección más próxima a una latitud/longitud.
 
 ```swift
 USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { result, error in
@@ -95,9 +95,9 @@ USIGNormalizador.location(latitude: <Una latitud>, longitude: <Una longitud>) { 
 
 ## Interfaz
 
-![Screeshot](https://raw.githubusercontent.com/gcba/usig-normalizador-ios/master/screenshot.png "Vista de búsqueda")
+![Screenshot](https://raw.githubusercontent.com/gcba/usig-normalizador-ios/master/screenshot.png "Vista de búsqueda")
 
-Permite buscar por calle. El controlador de la interfaz de búsqueda debe ser presentado por un `UINavigationController`.
+Permite buscar por el nombre de una calle o lugar. El controlador de la interfaz de búsqueda debe ser presentado por un `UINavigationController`.
 
 ```swift
 let searchController = USIGNormalizador.searchController()
@@ -105,7 +105,7 @@ let navigationController = UINavigationController(rootViewController: searchCont
 
 searchController.delegate = self
 
-present(navigationController, animated: true, completion: nil)
+present(navigationController, animated: true)
 ```
 
 
@@ -217,7 +217,7 @@ func didCancelSelection(_ searchController: USIGNormalizadorController) {
 
 #### exclude
 
-Localidades a excluir de la búsqueda, separadas por coma. El valor por defecto son las localidades del AMBA.
+Localidades a excluir de la búsqueda, separadas por coma. El valor por defecto son las localidades del AMBA (para obtener resultados sólo de CABA).
 
 ```swift
 func exclude(_ searchController: USIGNormalizadorController) -> String {
