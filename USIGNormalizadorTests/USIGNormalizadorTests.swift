@@ -110,7 +110,7 @@ class USIGNormalizadorTests: XCTestCase {
     }
 
     func testNormalizadorLocation() {
-        let expect = expectation(description: "Se obtiene la localización en base a un par de coordenadas")
+        let expect = expectation(description: "Se obtiene una dirección en base a un par de coordenadas")
 
         USIGNormalizador.location(latitude: -34.627847, longitude: -58.365986) { result, error in
             XCTAssert(error == nil)
@@ -135,7 +135,7 @@ class USIGNormalizadorTests: XCTestCase {
 
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar obtener la localización: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar obtener una dirección en base a un par de coordenadas: \(error.localizedDescription)")
             }
         }
     }
@@ -185,7 +185,7 @@ class USIGNormalizadorTests: XCTestCase {
         let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: -34.627847, longitud: -58.365986)
         let api = MoyaProvider<USIGNormalizadorAPI>()
         
-        let expect = expectation(description: "Se busca una calle y se obtiene una lista de resultados")
+        let expect = expectation(description: "Se obtiene una dirección en base a un par de coordenadas")
         
         api.request(request, completion: { response in
             XCTAssert(response.error == nil)
@@ -213,7 +213,7 @@ class USIGNormalizadorTests: XCTestCase {
         
         waitForExpectations(timeout: timeout) { error in
             if let error = error {
-                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar buscar una calle: \(error.localizedDescription)")
+                XCTFail("Falló waitForExpectations(timeout: \(self.timeout)) al intentar obtener una dirección en base a un par de coordenadas: \(error.localizedDescription)")
             }
         }
     }
