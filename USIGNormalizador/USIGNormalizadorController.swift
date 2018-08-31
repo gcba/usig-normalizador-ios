@@ -381,7 +381,8 @@ public class USIGNormalizadorController: UIViewController {
             value = result
 
             delegate?.didSelectValue(self, value: result)
-        } else {
+        }
+        else {
             let action = visibleActions[indexPath.row]
             
             if action is PinAction {

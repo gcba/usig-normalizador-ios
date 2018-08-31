@@ -113,6 +113,12 @@ internal extension String {
     }
     
     func removeSuffix(from address: USIGNormalizadorAddress) -> String {
-        return address.address.replacingOccurrences(of: ", \(address.districtName ?? "")", with: "").replacingOccurrences(of: ", \(address.localityName ?? "")", with: "")
+        guard let district = address.districtName, let locality = address.localityName else { return address.address }
+        
+        return address.address.replacingOccurrences(of: ", \(district)", with: "").replacingOccurrences(of: ", \(locality)", with: "")
+    }
+    
+    func snakeCased() -> String {
+        return self.lowercased().replacingOccurrences(of: " ", with: "_").folding(options: .diacriticInsensitive, locale: nil)
     }
 }

@@ -157,6 +157,20 @@ internal class EpokProvider: USIGNormalizadorProvider {
             .catchErrorJustReturn([:] as [String: Any])
     }
     
+    private func getCoordinates(from point: String) -> [String: String]? {
+        let parts = point.split(separator: "(")
+        
+        if parts.count > 1 {
+            let coordinates = parts[1].split(separator: " ")
+                        
+            if coordinates.count == 2 {
+                return ["x": String(coordinates[0]), "y": String(coordinates[1].dropLast())]
+            }
+        }
+        
+        return nil
+    }
+    
     func getStream(from searchStream: Observable<String>) -> Observable<[USIGNormalizadorResponse]> {
         // Avoid capturing self
         let config = self.config
@@ -165,6 +179,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
         let normalizationAPIProvider = self.normalizationAPIProvider
         let makeEpokGetObjectContentRequest = self.makeEpokGetObjectContentRequest
         let getResponse = self.getResponse
+        let getCoordinates = self.getCoordinates
         
         return searchStream
             // Filter by chars
@@ -200,20 +215,29 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 }
                 
                 var requests: [Observable<Any>] = []
-                var places: [String: String] = [:]
+                var places: [String: [String]] = [:]
                 
                 for json in jsonArray {
-                    if let normalizedAddress = (json["direccionNormalizada"] as? String)?.uppercased(), !normalizedAddress.isEmpty,
-                        let content = json["contenido"] as? [[String: Any]] {
+                    if let normalizedAddress = (json["direccionNormalizada"] as? String)?.uppercased(),
+                        !normalizedAddress.isEmpty,
+                        let content = json["contenido"] as? [[String: Any]],
+                        let ubicacion = json["ubicacion"] as? [String: Any],
+                        let centroide = ubicacion["centroide"] as? String {
                         var name: String?
+                        var district: String?
                         
                         for item in content {
-                            if let nameId = item["nombreId"] as? String, nameId == "nombre", let value = item["valor"] as? String {
+                            guard let nameId = item["nombreId"] as? String else { continue }
+                            
+                            if nameId == "nombre", let value = item["valor"] as? String {
                                 name = value
+                            }
+                            else if nameId == "partido", let value = item["valor"] as? String {
+                                district = value
                             }
                         }
                         
-                        if name != nil {
+                        if let name = name, let district = district, let exclusions = normalizationConfig.excluyendo, !exclusions.contains(district.snakeCased()) {
                             let request = NormalizadorProvider.makeNormalizationRequest(
                                 from: normalizedAddress,
                                 config: normalizationConfig,
@@ -221,7 +245,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                             )
                             
                             requests.append(request)
-                            places[normalizedAddress] = name!
+                            places[normalizedAddress] = [name, centroide]
                         }
                     }
                 }
@@ -234,7 +258,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     .toArray()
                     .scan([] as [[String: Any]], accumulator: { (matrix, item) -> [[String: Any]] in
                         guard let responses = item as? [[String: Any]] else { return [] }
-                    
+                        
                         var normalizationResponses: [[String: Any]] = []
                         
                         for (var response) in responses {
@@ -242,8 +266,10 @@ internal class EpokProvider: USIGNormalizadorProvider {
                                 for (addressIndex, address) in normalizedAddresses.enumerated() {
                                     if let fullAddress = (address["direccion"] as? String)?.uppercased(),
                                         let key = places.keys.first(where: { key in fullAddress.hasPrefix(key) }) {
-                                        normalizedAddresses[addressIndex]["label"] = places[key]
+                                        normalizedAddresses[addressIndex]["label"] = places[key]![0]
                                         response["direccionesNormalizadas"] = normalizedAddresses
+                                        
+                                        places.removeValue(forKey: key)
                                     }
                                 }
                                 
@@ -255,7 +281,23 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     })
                     // Build response objects
                     .flatMap { array -> Observable<[USIGNormalizadorResponse]> in
-                        let responses: [USIGNormalizadorResponse] = array.filter {item in !item.isEmpty }.map {item in getResponse(item) }
+                        var responses: [USIGNormalizadorResponse] = array.filter {item in !item.isEmpty }.map {item in getResponse(item) }
+                        var unnormalizedPlaces: [USIGNormalizadorAddress] = []
+                        
+                        for (key, var value) in places {
+                            let addressValues: [String: Any] = [
+                                "direccion": key,
+                                "nombre_calle": value[0],
+                                "label": value[0],
+                                "tipo": "calle_y_calle",
+                                "coordenadas": getCoordinates(value[1]) as Any,
+                                "source": API.self
+                            ]
+                            
+                            unnormalizedPlaces.append(USIGNormalizadorAddress(from: addressValues))
+                        }
+                        
+                        responses.append(USIGNormalizadorResponse(source: API.self, addresses: unnormalizedPlaces, error: nil))
                         
                         return Observable.of(responses)
                     }
