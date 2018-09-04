@@ -136,7 +136,7 @@ extension USIGEpokAPI: TargetType {
 
 internal struct USIGNormalizadorResponse {
     let source: TargetType.Type
-    let addresses: [USIGNormalizadorAddress]?
+    var addresses: [USIGNormalizadorAddress]?
     let error: USIGNormalizadorError?
 }
 

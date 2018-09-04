@@ -221,8 +221,8 @@ internal class EpokProvider: USIGNormalizadorProvider {
                     if let normalizedAddress = (json["direccionNormalizada"] as? String)?.uppercased(),
                         !normalizedAddress.isEmpty,
                         let content = json["contenido"] as? [[String: Any]],
-                        let ubicacion = json["ubicacion"] as? [String: Any],
-                        let centroide = ubicacion["centroide"] as? String {
+                        let location = json["ubicacion"] as? [String: Any],
+                        let centroid = location["centroide"] as? String {
                         var name: String?
                         var district: String?
                         
@@ -245,7 +245,7 @@ internal class EpokProvider: USIGNormalizadorProvider {
                             )
                             
                             requests.append(request)
-                            places[normalizedAddress] = [name, centroide]
+                            places[normalizedAddress] = [name, centroid]
                         }
                     }
                 }

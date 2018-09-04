@@ -51,7 +51,7 @@ public class USIGNormalizador: NSObject {
         }
 
         AddressManager()
-            .getStreams(from: sources)
+            .getStreams(from: sources, maxResults: maxResults)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: { results in
                 let filteredResults = results.filter { response in response.error == nil && response.addresses != nil && !response.addresses!.isEmpty }
