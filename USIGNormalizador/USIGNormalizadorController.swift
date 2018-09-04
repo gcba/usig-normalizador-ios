@@ -356,7 +356,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        self.results = Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults))
+        self.results = filteredResults.flatMap { response in response.addresses! }
         
         reloadTable(sections: [contentSection])
     }
