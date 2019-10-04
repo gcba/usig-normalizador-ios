@@ -17,6 +17,15 @@ DEPENDENCIES:
   - Moya/RxSwift (~> 10.0)
   - RxCocoa (~> 4.1)
 
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Alamofire
+    - DZNEmptyDataSet
+    - Moya
+    - Result
+    - RxCocoa
+    - RxSwift
+
 SPEC CHECKSUMS:
   Alamofire: f41a599bd63041760b26d393ec1069d9d7b917f4
   DZNEmptyDataSet: 9525833b9e68ac21c30253e1d3d7076cc828eaa7
@@ -27,4 +36,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: c19f0e9d623de71a5bae95c932861a3883cdcd94
 
-COCOAPODS: 1.4.0.rc.1
+COCOAPODS: 1.7.4

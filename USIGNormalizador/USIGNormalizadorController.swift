@@ -109,6 +109,7 @@ public class USIGNormalizadorController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
 
+
         checkDelegate()
         setupNavigationBar()
         setupTableView()
@@ -117,8 +118,9 @@ public class USIGNormalizadorController: UIViewController {
         setInitialValue()
         setupRx()
         setupKeyboardNotifications()
-
+        
         definesPresentationContext = true
+
     }
 
     override public func viewDidAppear(_ animated: Bool) {
@@ -463,18 +465,43 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let query = searchController.searchBar.textField?.text {
-                if let label = result.label {
-                    cell.textLabel?.attributedText = label.highlight(query)
-                    cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
-                }
-                else {
-                    cell.textLabel?.attributedText = address.highlight(query)
+            func updateCellLabelsiOS13() {
+                if let query = searchController.searchBar.searchTextField.text {
+                    if let label = result.label {
+                        cell.textLabel?.attributedText = label.highlight(query)
+                        cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                    }
+                    else {
+                        cell.textLabel?.attributedText = address.highlight(query)
+                        cell.detailTextLabel?.attributedText = nil
+                    }
+                } else {
+                    cell.textLabel?.attributedText = nil
                     cell.detailTextLabel?.attributedText = nil
                 }
-            } else {
-                cell.textLabel?.attributedText = nil
-                cell.detailTextLabel?.attributedText = nil
+            }
+            
+            func updateCellLabelsEarlieriOS() { //Versiones de iOS mas viejas no tienen searchBar.searchTextField
+                if let query = searchController.searchBar.textField?.text {
+                    if let label = result.label {
+                        cell.textLabel?.attributedText = label.highlight(query)
+                        cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                    }
+                    else {
+                        cell.textLabel?.attributedText = address.highlight(query)
+                        cell.detailTextLabel?.attributedText = nil
+                    }
+                } else {
+                    cell.textLabel?.attributedText = nil
+                    cell.detailTextLabel?.attributedText = nil
+                }
+            }
+            
+           //En función de la versión de iOS, ejecuta updateCellLabelsiOS13() o updateCellLabelsEarlieriOS()
+           if #available(iOS 13.0, *) {
+                updateCellLabelsiOS13()
+           } else { //Versiones de iOS mas viejas no tienen searchBar.searchTextField
+                updateCellLabelsEarlieriOS()
             }
             
             switch result.source {
@@ -595,12 +622,12 @@ private extension String {
 fileprivate extension UISearchBar {
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var textField: UITextField? {
-        return subviews.first?.subviews.flatMap { view in view as? UITextField }.first
+        return subviews.first?.subviews.compactMap { view in view as? UITextField }.first
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var activityIndicator: UIActivityIndicatorView? {
-        return textField?.leftView?.subviews.flatMap { view in view as? UIActivityIndicatorView }.first
+        return textField?.leftView?.subviews.compactMap { view in view as? UIActivityIndicatorView }.first
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
