@@ -1,3 +1,4 @@
+
 # USIGNormalizador
 
 ![Version](https://img.shields.io/cocoapods/v/USIGNormalizador.svg)
@@ -6,6 +7,9 @@
 
 Cliente iOS del [servicio de normalización de direcciones de USIG](http://servicios.usig.buenosaires.gob.ar/normalizar) para CABA y AMBA, desarrollado en Swift 4.
 
+#### `Tener en cuenta`
+
+  - Esta versión es compatible con ios 13 por lo que el proyecto que lo utilice debera compilar en swift 4
 
 ## Instalación
 

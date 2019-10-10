@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.0 - 10/10/2019
+
+### Changed
+- Bug Fix iOS 13. SearchBarController **[breaking]** 
+
 ## v2.0.0 - 17/01/2018
 
 ### Changed
