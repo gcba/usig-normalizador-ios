@@ -621,14 +621,21 @@ private extension String {
 
 fileprivate extension UISearchBar {
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
-    fileprivate var textField: UITextField? {
-        return subviews.first?.subviews.compactMap { view in view as? UITextField }.first
+    var textField: UITextField? {
+        if #available(iOS 13.0, *) {
+            return searchTextField
+        } else {
+           if let textField = value(forKey: "searchField") as? UITextField {
+                return textField
+            }
+            return nil
+        }
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
-    fileprivate var activityIndicator: UIActivityIndicatorView? {
-        return textField?.leftView?.subviews.compactMap { view in view as? UIActivityIndicatorView }.first
-    }
+     private var activityIndicator: UIActivityIndicatorView? {
+           return textField?.leftView?.subviews.compactMap{ $0 as? UIActivityIndicatorView }.first
+       }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var isLoading: Bool {
@@ -640,15 +647,16 @@ fileprivate extension UISearchBar {
             if newValue {
                 if activityIndicator == nil {
                     let newActivityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
-
-                    newActivityIndicator.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
                     newActivityIndicator.startAnimating()
-                    newActivityIndicator.backgroundColor = UIColor.white
+                    if #available(iOS 13.0, *) {
+                        newActivityIndicator.backgroundColor = UIColor.systemGroupedBackground
+                    } else {
+                        newActivityIndicator.backgroundColor = UIColor.groupTableViewBackground
+                    }
+                    newActivityIndicator.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                     textField?.leftView?.addSubview(newActivityIndicator)
-
                     let leftViewSize = textField?.leftView?.frame.size ?? CGSize.zero
-
-                    newActivityIndicator.center = CGPoint(x: leftViewSize.width / 2, y: leftViewSize.height / 2)
+                    newActivityIndicator.center = CGPoint(x: leftViewSize.width/2, y: leftViewSize.height/2)
                 }
             } else {
                 activityIndicator?.removeFromSuperview()
