@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2.0 - 11/10/2019
+### Changed
+- Fix iOS 13 - Comptible with Xcode 10 and 11. 
+
 ## v2.0.0 - 17/01/2018
 
 ### Changed
