@@ -372,7 +372,7 @@ public class USIGNormalizadorController: UIViewController {
                         self.reloadTable(sections: [self.actionsSection])
                     }
 
-                    self.searchController.searchBar.textField?.text = result.street + " "
+                    self.searchController.searchBar.text = result.street + " "
                 }
 
                 return
@@ -463,7 +463,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let query = searchController.searchBar.textField?.text {
+            if let query = searchController.searchBar.text {
                 if let label = result.label {
                     cell.textLabel?.attributedText = label.highlight(query)
                     cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
