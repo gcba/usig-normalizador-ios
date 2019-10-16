@@ -13,6 +13,7 @@ import Foundation
 class USIGNormalizadorConfig {
     static let endpointNormalizador: String = "https://servicios.usig.buenosaires.gob.ar"
     static let endpointEpok: String = "https://epok.buenosaires.gob.ar"
+    static let requestTimeout: Double = 5
     static let exclusionsDefault: String = USIGNormalizadorExclusions.AMBA.rawValue
     static let maxResultsDefault: Int = 10
     static let pinColorDefault: UIColor = UIColor.lightGray

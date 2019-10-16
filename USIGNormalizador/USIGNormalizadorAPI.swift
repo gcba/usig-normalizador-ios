@@ -105,7 +105,7 @@ extension USIGEpokAPI: TargetType {
         case .getCategorias:
             return .requestPlain
         case .getObjectContent(let id):
-            return .requestParameters(parameters: ["id": id], encoding: URLEncoding.default)
+            return .requestParameters(parameters: ["id": id, "srid": 4326], encoding: URLEncoding.default)
         case .buscar(let texto, let categoria, let clase, let boundingBox, let start, let limit, let total):
             var params: [String: Any] = [:]
             
@@ -136,7 +136,7 @@ extension USIGEpokAPI: TargetType {
 
 internal struct USIGNormalizadorResponse {
     let source: TargetType.Type
-    let addresses: [USIGNormalizadorAddress]?
+    var addresses: [USIGNormalizadorAddress]?
     let error: USIGNormalizadorError?
 }
 

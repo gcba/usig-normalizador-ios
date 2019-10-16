@@ -160,9 +160,12 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupAPIProviders() {
+        let cachePolicy: URLRequest.CachePolicy = .returnCacheDataElseLoad
+        
         normalizationAPIProvider = MoyaProvider(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
             if var mutableRequest = try? endpoint.urlRequest() {
-                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                mutableRequest.cachePolicy = cachePolicy
+                mutableRequest.timeoutInterval = USIGNormalizadorConfig.requestTimeout
                 
                 done(.success(mutableRequest))
             }
@@ -170,7 +173,8 @@ public class USIGNormalizadorController: UIViewController {
         
         epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: MoyaProvider.RequestResultClosure) in
             if var mutableRequest = try? endpoint.urlRequest() {
-                mutableRequest.cachePolicy = .returnCacheDataElseLoad
+                mutableRequest.cachePolicy = cachePolicy
+                mutableRequest.timeoutInterval = USIGNormalizadorConfig.requestTimeout
                 
                 done(.success(mutableRequest))
             }
@@ -230,7 +234,7 @@ public class USIGNormalizadorController: UIViewController {
             .disposed(by: disposeBag)
         
         AddressManager()
-            .getStreams(from: sources)
+            .getStreams(from: sources, maxResults: maxResults)
             .observeOn(ConcurrentMainScheduler.instance)
             .subscribe(onNext: handleResults)
             .disposed(by: disposeBag)
@@ -352,7 +356,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         }
         
-        self.results = Array(filteredResults.flatMap { response in response.addresses! }.prefix(maxResults))
+        self.results = filteredResults.flatMap { response in response.addresses! }
         
         reloadTable(sections: [contentSection])
     }
@@ -381,7 +385,8 @@ public class USIGNormalizadorController: UIViewController {
             value = result
 
             delegate?.didSelectValue(self, value: result)
-        } else {
+        }
+        else {
             let action = visibleActions[indexPath.row]
             
             if action is PinAction {

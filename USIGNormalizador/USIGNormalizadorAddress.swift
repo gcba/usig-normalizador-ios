@@ -43,7 +43,7 @@ public struct USIGNormalizadorAddress {
 
     static private func parseCoordinate(fromDict dict: [String: Any]?, key: String) -> Double? {
         guard let coordinatesDict = dict else { return nil }
-
+        
         if let coordinateString = coordinatesDict[key] as? String {
             return Double(coordinateString)
         }
