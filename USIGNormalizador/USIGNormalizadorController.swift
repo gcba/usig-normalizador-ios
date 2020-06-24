@@ -303,7 +303,7 @@ public class USIGNormalizadorController: UIViewController {
             let actionIndex = actions.index(where: { action in action is NoNormalizationAction })
             
             actions[actionIndex!].cell.text = NSAttributedString(string: "")
-            searchController.searchBar.textField?.text = searchController.searchBar.textField?.text?.removeWhitespace()
+            searchController.searchBar.text = searchController.searchBar.text?.removeWhitespace()
             state = .empty
             results = []
             
@@ -376,7 +376,8 @@ public class USIGNormalizadorController: UIViewController {
                         self.reloadTable(sections: [self.actionsSection])
                     }
 
-                    self.searchController.searchBar.textField?.text = result.street + " "
+                    //self.searchController.searchBar.textField?.text = result.street + " "
+                    self.searchController.searchBar.text = result.street + " "
                 }
 
                 return
@@ -413,7 +414,7 @@ public class USIGNormalizadorController: UIViewController {
             
             if !self.forceNormalization,
                 let actionIndex = self.actions.index(where: { action in action is NoNormalizationAction }),
-                let text = self.searchController.searchBar.textField?.text?.removeWhitespace() {
+                let text = self.searchController.searchBar.text?.removeWhitespace() {
                 let equalItem = self.results.first { [unowned self] item in
                     self.showDetails ? item.address == text.uppercased() : item.address.removeSuffix(from: item) == text.uppercased()
                 }
@@ -468,7 +469,7 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let query = searchController.searchBar.textField?.text {
+           if let query = searchController.searchBar.text {
                 if let label = result.label {
                     cell.textLabel?.attributedText = label.highlight(query)
                     cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
