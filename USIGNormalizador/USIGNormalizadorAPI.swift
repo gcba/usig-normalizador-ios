@@ -73,7 +73,7 @@ extension USIGNormalizadorAPI: TargetType {
 // MARK: - USIG Epok API
 
 public enum USIGEpokAPI {
-    case getCategorias()
+    case getCategorias;
     case getObjectContent(id: String)
     case buscar(texto: String, categoria: String?, clase: String?, boundingBox: [Double]?, start: Int?, limit: Int?, total: Bool?)
     case reverseGeocoderLugares(categorias: [String], latitud: Double, longitud: Double, srid: Int?, radio: Int?)

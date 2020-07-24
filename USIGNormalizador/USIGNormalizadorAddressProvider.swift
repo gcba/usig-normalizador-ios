@@ -139,7 +139,6 @@ internal class EpokProvider: USIGNormalizadorProvider {
             limit: config.limit,
             total: config.total
         )
-        
         return apiProvider
             .request(request)
             .asObservable()
@@ -185,9 +184,8 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 
                 let requests: [Observable<Any>] = instances.filter { item in item["id"] != nil }.map { item in makeEpokGetObjectContentRequest(item["id"]!) }
                 
-                return Observable.from(requests)
-                    .merge()
-                    .toArray()
+                return Observable.of(requests)
+
             }
             // Parse, check and make Normalization request
             .flatMap { result -> Observable<[USIGNormalizadorResponse]> in
@@ -231,7 +229,6 @@ internal class EpokProvider: USIGNormalizadorProvider {
                 // Parse, check and reduce addresses
                 return Observable.from(requests)
                     .merge()
-                    .toArray()
                     .scan([] as [[String: Any]], accumulator: { (matrix, item) -> [[String: Any]] in
                         guard let responses = item as? [[String: Any]] else { return [] }
                     
@@ -260,5 +257,15 @@ internal class EpokProvider: USIGNormalizadorProvider {
                         return Observable.of(responses)
                     }
         }
+    }
+}
+
+extension Moya.Response {
+    func mapNSArray() throws -> NSArray {
+        let any = try self.mapJSON()
+        guard let array = any as? NSArray else {
+            throw MoyaError.jsonMapping(self)
+        }
+        return array
     }
 }
