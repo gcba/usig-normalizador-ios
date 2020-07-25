@@ -1,3 +1,0 @@
-github "ReactiveX/RxSwift" ~> 4.1
-github "Moya/Moya" ~> 10.0
-github "dzenbot/DZNEmptyDataSet" ~> 1.8

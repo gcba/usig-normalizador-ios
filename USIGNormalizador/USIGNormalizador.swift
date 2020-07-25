@@ -9,6 +9,7 @@
 import Foundation
 import RxSwift
 import Moya
+import Result
 
 public class USIGNormalizador: NSObject {
     private static let disposeBag: DisposeBag = DisposeBag()
@@ -87,11 +88,11 @@ public class USIGNormalizador: NSObject {
         let request = USIGNormalizadorAPI.normalizarCoordenadas(latitud: latitude, longitud: longitude)
 
         api.request(request) { response in
-            if let error = response.error, let errorMessage = error.errorDescription {
-                completion(nil, USIGNormalizadorError.other(errorMessage))
-
-                return
-            }
+//            if let error = response.error, let errorMessage = error.errorDescription {
+//                completion(nil, USIGNormalizadorError.other(errorMessage))
+//
+//                return
+//            }
 
             guard let json = (try? response.value?.mapJSON(failsOnEmptyData: false)) as? [String: Any],
                 json["direccion"] is String,

@@ -109,6 +109,7 @@ public class USIGNormalizadorController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
 
+
         checkDelegate()
         setupNavigationBar()
         setupTableView()
@@ -117,8 +118,9 @@ public class USIGNormalizadorController: UIViewController {
         setInitialValue()
         setupRx()
         setupKeyboardNotifications()
-
+        
         definesPresentationContext = true
+
     }
 
     override public func viewDidAppear(_ animated: Bool) {
@@ -160,7 +162,7 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupAPIProviders() {
-        normalizationAPIProvider = MoyaProvider(requestClosure: { (endpoint: Endpoint<USIGNormalizadorAPI>, done: MoyaProvider.RequestResultClosure) in
+        normalizationAPIProvider = MoyaProvider(requestClosure: { (endpoint: Endpoint, done: MoyaProvider.RequestResultClosure) in
             if var mutableRequest = try? endpoint.urlRequest() {
                 mutableRequest.cachePolicy = .returnCacheDataElseLoad
                 
@@ -168,7 +170,7 @@ public class USIGNormalizadorController: UIViewController {
             }
         })
         
-        epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint<USIGEpokAPI>, done: MoyaProvider.RequestResultClosure) in
+        epokAPIProvider = MoyaProvider<USIGEpokAPI>(requestClosure: { (endpoint: Endpoint, done: MoyaProvider.RequestResultClosure) in
             if var mutableRequest = try? endpoint.urlRequest() {
                 mutableRequest.cachePolicy = .returnCacheDataElseLoad
                 
@@ -183,7 +185,7 @@ public class USIGNormalizadorController: UIViewController {
         
         let searchStream = searchController.searchBar.rx
             .text
-            .debounce(0.5, scheduler: MainScheduler.instance)
+            .debounce(.microseconds(500), scheduler: MainScheduler.instance)
             .distinctUntilChanged(filterSearch)
             .filter(filterSearch)
             .flatMapLatest { query in Observable.from(optional: query) }
@@ -237,13 +239,13 @@ public class USIGNormalizadorController: UIViewController {
     }
     
     private func setupKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIResponder.keyboardWillShowNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIResponder.keyboardWillChangeFrameNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIResponder.keyboardWillHideNotification, object: nil)
     }
     
     private func setupActions() {
-        let attributes = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
+        let attributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.systemFontSize)]
 
         let pinCell = ActionCell(text: NSAttributedString(string: pinText, attributes: attributes), detailText: nil, icon: pinImage, iconTint: pinColor)
         let pinAction = PinAction(cell: pinCell, isVisible: showPin)
@@ -264,7 +266,7 @@ public class USIGNormalizadorController: UIViewController {
     
     @objc private func keyboardWillShow(_ notification: Notification) {
         guard let userInfo: NSDictionary = (notification as NSNotification).userInfo as NSDictionary?,
-            let keyboardFrame: NSValue = userInfo.value(forKey: UIKeyboardFrameEndUserInfoKey) as? NSValue else { return }
+            let keyboardFrame: NSValue = userInfo.value(forKey: UIResponder.keyboardFrameEndUserInfoKey) as? NSValue else { return }
         
         DispatchQueue.main.async { [weak self] in
             self?.tableBottomConstraint.constant = keyboardFrame.cgRectValue.height
@@ -372,7 +374,7 @@ public class USIGNormalizadorController: UIViewController {
                         self.reloadTable(sections: [self.actionsSection])
                     }
 
-                    self.searchController.searchBar.text = result.street + " "
+                    self.searchController.searchBar.textField?.text = result.street + " "
                 }
 
                 return
@@ -417,7 +419,7 @@ public class USIGNormalizadorController: UIViewController {
                 let isShort = text.count < self.minCharactersNormalization
                 
                 if !isShort {
-                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
+                    self.actions[actionIndex].cell.text = NSAttributedString(string: text, attributes: [NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: UIFont.systemFontSize)])
                 }
                 
                 self.actions[actionIndex].isVisible.value = !isEqual && !isShort
@@ -463,18 +465,47 @@ extension USIGNormalizadorController: UITableViewDataSource, UITableViewDelegate
             let result = results[indexPath.row]
             let address = showDetails ? result.address : result.address.removeSuffix(from: result)
             
-            if let query = searchController.searchBar.text {
-                if let label = result.label {
-                    cell.textLabel?.attributedText = label.highlight(query)
-                    cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+            func updateCellLabelsiOS13() {
+                if #available(iOS 13.0, *) {
+                    if let query = searchController.searchBar.searchTextField.text {
+                        if let label = result.label {
+                            cell.textLabel?.attributedText = label.highlight(query)
+                            cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                        }
+                        else {
+                            cell.textLabel?.attributedText = address.highlight(query)
+                            cell.detailTextLabel?.attributedText = nil
+                        }
+                    } else {
+                        cell.textLabel?.attributedText = nil
+                        cell.detailTextLabel?.attributedText = nil
+                    }
+                } else {
+                    // Fallback on earlier versions
                 }
-                else {
-                    cell.textLabel?.attributedText = address.highlight(query)
+            }
+            
+            func updateCellLabelsEarlieriOS() { //Versiones de iOS mas viejas no tienen searchBar.searchTextField
+                if let query = searchController.searchBar.textField?.text {
+                    if let label = result.label {
+                        cell.textLabel?.attributedText = label.highlight(query)
+                        cell.detailTextLabel?.attributedText = address.highlight(query, fontSize: 12)
+                    }
+                    else {
+                        cell.textLabel?.attributedText = address.highlight(query)
+                        cell.detailTextLabel?.attributedText = nil
+                    }
+                } else {
+                    cell.textLabel?.attributedText = nil
                     cell.detailTextLabel?.attributedText = nil
                 }
-            } else {
-                cell.textLabel?.attributedText = nil
-                cell.detailTextLabel?.attributedText = nil
+            }
+            
+           //En función de la versión de iOS, ejecuta updateCellLabelsiOS13() o updateCellLabelsEarlieriOS()
+           if #available(iOS 13.0, *) {
+                updateCellLabelsiOS13()
+           } else { //Versiones de iOS mas viejas no tienen searchBar.searchTextField
+                updateCellLabelsEarlieriOS()
             }
             
             switch result.source {
@@ -523,7 +554,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func title(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let title: String
-        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)]
+        let attributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)]
 
         switch state {
         case .empty:
@@ -539,7 +570,7 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
     public func description(forEmptyDataSet scrollView: UIScrollView) -> NSAttributedString? {
         let description: String
-        let attributes = [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)]
+        let attributes = [NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)]
 
         switch state {
         case .empty:
@@ -564,8 +595,8 @@ extension USIGNormalizadorController: DZNEmptyDataSetSource, DZNEmptyDataSetDele
 
 private extension String {
     func highlight(range boldRange: NSRange, fontSize: CGFloat = UIFont.systemFontSize) -> NSAttributedString {
-        let bold = [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: fontSize)]
-        let nonBold = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: fontSize)]
+        let bold = [NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: fontSize)]
+        let nonBold = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: fontSize)]
         let attributedString = NSMutableAttributedString(string: self, attributes: nonBold)
 
         attributedString.setAttributes(bold, range: boldRange)
@@ -594,14 +625,21 @@ private extension String {
 
 fileprivate extension UISearchBar {
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
-    fileprivate var textField: UITextField? {
-        return subviews.first?.subviews.flatMap { view in view as? UITextField }.first
+    var textField: UITextField? {
+        if #available(iOS 13.0, *) {
+            return searchTextField
+        } else {
+           if let textField = value(forKey: "searchField") as? UITextField {
+                return textField
+            }
+            return nil
+        }
     }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
-    fileprivate var activityIndicator: UIActivityIndicatorView? {
-        return textField?.leftView?.subviews.flatMap { view in view as? UIActivityIndicatorView }.first
-    }
+     private var activityIndicator: UIActivityIndicatorView? {
+           return textField?.leftView?.subviews.compactMap{ $0 as? UIActivityIndicatorView }.first
+       }
 
     // From: https://stackoverflow.com/questions/37692809/uisearchcontroller-with-loading-indicator
     fileprivate var isLoading: Bool {
@@ -612,16 +650,17 @@ fileprivate extension UISearchBar {
         set {
             if newValue {
                 if activityIndicator == nil {
-                    let newActivityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
-
-                    newActivityIndicator.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
+                    let newActivityIndicator = UIActivityIndicatorView(style: .gray)
                     newActivityIndicator.startAnimating()
-                    newActivityIndicator.backgroundColor = UIColor.white
+                    if #available(iOS 13.0, *) {
+                        newActivityIndicator.backgroundColor = UIColor.systemGroupedBackground
+                    } else {
+                        newActivityIndicator.backgroundColor = UIColor.groupTableViewBackground
+                    }
+                    newActivityIndicator.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                     textField?.leftView?.addSubview(newActivityIndicator)
-
                     let leftViewSize = textField?.leftView?.frame.size ?? CGSize.zero
-
-                    newActivityIndicator.center = CGPoint(x: leftViewSize.width / 2, y: leftViewSize.height / 2)
+                    newActivityIndicator.center = CGPoint(x: leftViewSize.width/2, y: leftViewSize.height/2)
                 }
             } else {
                 activityIndicator?.removeFromSuperview()
